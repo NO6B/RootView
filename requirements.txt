@@ -1,0 +1,19 @@
+# Framework Web (routes, templates, API)
+Flask
+Flask-SQLAlchemy
+Flask-Login
+
+# Connexion SSH aux serveurs Linux
+paramiko
+
+# Appels API vers AbuseIPDB
+requests
+
+# Gestion des secrets (.env)
+python-dotenv
+
+# Tests automatisés (Sprint 3)
+pytest
+
+# Qualité du code (Sprint 3)
+flake8

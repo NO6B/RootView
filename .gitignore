@@ -1,0 +1,8 @@
+# Environnement virtuel (Python)
+venv/
+# Cache Python (Fichiers générés automatiquement)
+**/__pycache__/
+# Base de données
+instance/
+*.db
+*.sqlite3
