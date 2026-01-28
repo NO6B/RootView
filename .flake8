@@ -1,0 +1,5 @@
+[flake8]
+exclude = .git,__pycache__,venv,instance
+ignore = E501, W503
+# Mets la longueur 200 caractères
+max-line-length = 200
