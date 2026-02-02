@@ -36,6 +36,24 @@ class GestionnaireSSH:
             
         except Exception as e:
             return False, f"Impossible de joindre le serveur: {e}"
+        
+    def recuperation_log_systeme(self):
+        try:
+            # execution de la command
+            stdin, stdout, stderr = self.client.exec_command('cat /var/log/auth.log')
+            # récuperation du résultat binaire, et le traduit en texte
+            return stdout.read().decode('utf-8')
+        except Exception as e:
+            return f"Erreur: {e}"
+            
+    def recuperation_log_web(self):
+            try:
+                # execution de la command
+                stdin, stdout, stderr = self.client.exec_command('cat /var/log/apache2/access.log')
+                # récuperation du résultat binaire, et le traduit en texte
+                return stdout.read().decode('utf-8')
+            except Exception as e:
+                return f"Erreur: {e}"
 
     def fermer(self):
         self.client.close()
