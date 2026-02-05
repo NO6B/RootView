@@ -19,3 +19,15 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "rootview.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
+# Active la route '/scheduler/jobs' pour visualiser les tâches actives (JSON)
+    SCHEDULER_API_ENABLED = True
+
+# CONFIGURATION DES TÂCHES AUTOMATISÉES A EXECUTER
+    JOBS = [
+        {
+            'id': 'scan_routine',
+            'func': 'app.task:scan_global',
+            'trigger': 'interval',
+            'minutes': 1
+        }
+    ]
