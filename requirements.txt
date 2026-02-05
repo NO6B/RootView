@@ -2,6 +2,7 @@
 Flask
 Flask-SQLAlchemy
 Flask-Login
+Flask-APScheduler
 
 # Connexion SSH aux serveurs Linux
 paramiko
