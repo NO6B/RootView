@@ -1,22 +1,35 @@
 import re
 
-def parse_log_ligne(ligne):
-    if not ligne:
+def convertir_ligne_en_info(ligne_brute):
+    if not ligne_brute or not ligne_brute.strip():
         return None
 
-    # Motif complet : Date | Message | User | IP
-    motif = r"^(.{15}).*?:\s+(.*?)\s+(\S+)\s+from\s+(\d+\.\d+\.\d+\.\d+)"
-
-    # Exécution de la recherche du motif dans la ligne
-    match = re.search(motif, ligne)
-
-    if match:
-        return {
-            "date_heure":     match.group(1),
-            "ip_source":      match.group(4),
-            "log_brut":       ligne,
-            "user":           match.group(3),
-            "message_erreur": match.group(2)
-        }
+    # --- FORMAT 1 : SSH (Linux System Logs) ---
     
+    regex_ssh = r"^(.{15}).*?:\s+(.*?)\s+from\s+(\d+\.\d+\.\d+\.\d+)"
+    match_ssh = re.search(regex_ssh, ligne_brute)
+    
+    if match_ssh:
+        return {
+            "source":      "SSH",
+            "date":        match_ssh.group(1),
+            "message":     match_ssh.group(2),
+            "adresse_ip":  match_ssh.group(3),
+            "ligne_complete": ligne_brute
+        }
+
+    # --- FORMAT 2 : WEB (Apache / Nginx) ---
+    
+    regex_web = r"^(\d+\.\d+\.\d+\.\d+)\s-\s-\s\[(.*?)\]\s\"(.*?)\""
+    match_web = re.search(regex_web, ligne_brute)
+
+    if match_web:
+        return {
+            "source":      "WEB",
+            "date":        match_web.group(2),
+            "message":     match_web.group(3),
+            "adresse_ip":  match_web.group(1),
+            "ligne_complete": ligne_brute
+        }
+
     return None
