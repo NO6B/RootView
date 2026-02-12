@@ -1,64 +1,131 @@
-from datetime import datetime
+from collections import defaultdict
 from app import db
 from app.models import Serveur, Alerte
 from app.ssh_client import GestionnaireSSH
+from app.parser import parser_ligne_log
+from app.analyzer import AnalyseurSecurite
+
+
+# Configuration
+SEUIL_BRUTE_FORCE = 2
+SEUIL_DOS = 100
+
 
 def scan(serveur_id):
-    # Récupération des infos du serveur dans le db
+    # recuperation d'info serveur de la bdd
     serveur = Serveur.query.get(serveur_id)
     if not serveur:
-        print(f"Erreur : Serveur {serveur_id} introuvable.")
+        print(f"ERREUR: Serveur ID {serveur_id} introuvable.")
         return
 
-    # Connexion SSH
-    connection = GestionnaireSSH()
-    
-    succes, message = connection.etablir_connexion(
-        serveur.adresse_ip, 
-        serveur.utilisateur_ssh,
-        serveur.clef_ssh
+    # connection serveur ssh
+    session_ssh = GestionnaireSSH()
+    connecte = session_ssh.etablir_connexion(
+        serveur.adresse_ip, serveur.utilisateur_ssh, serveur.clef_ssh
     )
 
-    if not succes:
-        print(f"Erreur de connexion : {message}")
+    if not connecte:
+        print(f"ECHEC: Connexion impossible sur {serveur.nom}")
         return
 
-    # Récupération des logs
-    logs_bruts = connection.recuperation_log_systeme()
-    connection.fermer() 
+    print(f"Démarrage sur {serveur.nom}")
 
-    if not logs_bruts:
-        print("Aucun log récupéré.")
-        return
+    # Extraction des logs via SSH
+    logs_ssh = session_ssh.recuperation_log_systeme()
+    logs_web = session_ssh.recuperation_log_web()
 
-    # --Stockage-- transformation du bloc de texte en liste de lignes
-    lignes = logs_bruts.split('\n')
-    
-    compteur = 0
-    
-    # boucle sur toutes les lignes
+    # Traitement analytique du type de log
+    if logs_ssh:
+        traiter_logs(serveur.id, logs_ssh, "SSH")
+    if logs_web:
+        traiter_logs(serveur.id, logs_web, "WEB")
+
+    session_ssh.fermer()
+    print(f"Audit terminé pour {serveur.nom}.")
+
+
+def traiter_logs(serveur_id, logs, protocole):
+
+    lignes = logs.split("\n")
+
+    # Création de dictionnaire pour comptabiliser les occurrences par IP
+    registre_echecs_ip = defaultdict(int)
+    registre_volume = defaultdict(int)
+
+    # Zone accumuler les alertes avant l'envoi en BDD
+    lot_alertes = []
+
     for ligne in lignes:
-        
-        # On saute les lignes vides
-        if not ligne.strip(): 
+        # Structuration de la ligne brute en dictionnaire
+        donnees = parser_ligne_log(ligne)
+
+        if donnees is None:
             continue
 
-        # On stocke la ligne brute
-        alerte = Alerte(
-            id_serveur=serveur.id,
-            type="LOG_BRUT",
-            ip_source="0.0.0.0",
-            ip_liste=False,
-            log_brut=ligne,
-            date_heure=datetime.now()
-        )
-        db.session.add(alerte)
-        compteur += 1
+        # Récupération des clés ,adresse_ip / message
+        ip_source = donnees["adresse_ip"]
+        contenu_log = donnees["message"]
+        date_log = donnees["date"]
 
-    # Sauvegarde finale
+        # Incrémentation Volume (DoS)
+        registre_volume[ip_source] += 1
+        
+        # Détection DoS :alerte uniquement au moment précis où le seuil est franchit
+        if registre_volume[ip_source] == SEUIL_DOS + 1:
+            lot_alertes.append(
+                creation_alerte(serveur_id, "DoS", ip_source, ligne, date_log)
+            )
+
+        # Détection par Protocole
+        if protocole == "SSH":
+            if AnalyseurSecurite.echec_de_mot_de_passe(contenu_log):
+                registre_echecs_ip[ip_source] += 1
+                
+                # Détection Brute Force
+                if registre_echecs_ip[ip_source] == SEUIL_BRUTE_FORCE + 1:
+                     lot_alertes.append(
+                        creation_alerte(serveur_id, "SSH Brute Force", ip_source, ligne, date_log)
+                    )
+
+            elif AnalyseurSecurite.utilisateur_inconnu(contenu_log):
+                lot_alertes.append(
+                    creation_alerte(serveur_id, "Invalid User", ip_source, ligne, date_log)
+                )
+
+        elif protocole == "WEB":
+            if AnalyseurSecurite.injection_sql(contenu_log):
+                lot_alertes.append(
+                    creation_alerte(serveur_id, "SQL Injection", ip_source, ligne, date_log)
+                )
+
+            elif AnalyseurSecurite.remontee_de_dossier(contenu_log):
+                lot_alertes.append(
+                    creation_alerte(serveur_id, "Path Traversal", ip_source, ligne, date_log)
+                )
+
+    persister_alertes(lot_alertes)
+
+
+def creation_alerte(srv_id, type, ip, lignes, date_log):
+    """Créeation d'un objet Alerte prêt à être sauvegardé."""
+    return Alerte(
+        id_serveur=srv_id,
+        type=type,
+        ip_source=ip,
+        ip_liste=False,
+        log_brut=lignes,
+        date_heure=str(date_log),
+    )
+
+
+def persister_alertes(lot_alertes):
+    """Sauvegarde groupée en BDD."""
+    if not lot_alertes:
+        return
     try:
+        db.session.add_all(lot_alertes)
         db.session.commit()
-        print(f"Succès : {compteur} lignes sauvegardées (Tout le fichier).")
+        print(f"DB: {len(lot_alertes)} alertes enregistrées")
     except Exception as e:
         db.session.rollback()
-        print(f"Erreur BDD : {e}")
+        print(f"ERREUR BDD: {e}")
