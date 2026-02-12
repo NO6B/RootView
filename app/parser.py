@@ -7,13 +7,13 @@ def parser_ligne_log(ligne_brute):
 
     # --- FORMAT : SSH (Linux System Logs) ---
 
-    regex_ssh = r"^(.{15}).*?:\s+(.*?)\s+from\s+(\d+\.\d+\.\d+\.\d+)"
+    regex_ssh = r"^(.+?)\s+.*?sshd\[\d+\]:\s+(.*?)\s+from\s+(\d+\.\d+\.\d+\.\d+)"
     match_ssh = re.search(regex_ssh, ligne_brute)
 
     if match_ssh:
         return {
             "source": "SSH",
-            "date": match_ssh.group(1),
+            "date": match_ssh.group(1).strip(),
             "message": match_ssh.group(2),
             "adresse_ip": match_ssh.group(3),
             "ligne_complete": ligne_brute,
