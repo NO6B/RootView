@@ -32,4 +32,4 @@ class Alerte(db.Model):
     ip_source = db.Column(db.String(100))
     ip_liste = db.Column(db.Boolean)
     log_brut = db.Column(db.Text)
-    date_heure = db.Column(db.DateTime, nullable=False)
+    date_heure = db.Column(db.String(50), nullable=False)
