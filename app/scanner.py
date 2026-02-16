@@ -8,7 +8,7 @@ from app.client_abuseipdb import verification_ip
 
 
 # Configuration
-SEUIL_BRUTE_FORCE = 2
+SEUIL_BRUTE_FORCE = 10
 SEUIL_DOS = 100
 
 
