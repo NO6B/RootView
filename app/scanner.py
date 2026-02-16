@@ -4,10 +4,11 @@ from app.models import Serveur, Alerte
 from app.ssh_client import GestionnaireSSH
 from app.parser import parser_ligne_log
 from app.analyzer import AnalyseurSecurite
+from app.client_abuseipdb import verification_ip
 
 
 # Configuration
-SEUIL_BRUTE_FORCE = 2
+SEUIL_BRUTE_FORCE = 10
 SEUIL_DOS = 100
 
 
@@ -56,6 +57,7 @@ def traiter_logs(serveur_id, logs, protocole):
     lot_alertes = []
 
     for ligne in lignes:
+
         # Structuration de la ligne brute en dictionnaire
         donnees = parser_ligne_log(ligne)
 
@@ -72,8 +74,9 @@ def traiter_logs(serveur_id, logs, protocole):
         
         # Détection DoS :alerte uniquement au moment précis où le seuil est franchit
         if registre_volume[ip_source] == SEUIL_DOS + 1:
+            score, pays = verification_ip(ip_source)
             lot_alertes.append(
-                creation_alerte(serveur_id, "DoS", ip_source, ligne, date_log)
+                creation_alerte(serveur_id, "DoS", ip_source, ligne, date_log, score, pays)
             )
 
         # Détection par Protocole
@@ -83,38 +86,49 @@ def traiter_logs(serveur_id, logs, protocole):
                 
                 # Détection Brute Force
                 if registre_echecs_ip[ip_source] == SEUIL_BRUTE_FORCE + 1:
+                     score, pays =verification_ip(ip_source)
                      lot_alertes.append(
-                        creation_alerte(serveur_id, "SSH Brute Force", ip_source, ligne, date_log)
+                        creation_alerte(serveur_id, "SSH Brute Force", ip_source, ligne, date_log, score, pays)
                     )
 
             elif AnalyseurSecurite.utilisateur_inconnu(contenu_log):
+                score, pays = verification_ip(ip_source)
                 lot_alertes.append(
-                    creation_alerte(serveur_id, "Invalid User", ip_source, ligne, date_log)
+                    creation_alerte(serveur_id, "Invalid User", ip_source, ligne, date_log, score, pays)
                 )
 
         elif protocole == "WEB":
             if AnalyseurSecurite.injection_sql(contenu_log):
+                score, pays = verification_ip(ip_source)
                 lot_alertes.append(
-                    creation_alerte(serveur_id, "SQL Injection", ip_source, ligne, date_log)
+                    creation_alerte(serveur_id, "SQL Injection", ip_source, ligne, date_log, score, pays)
                 )
 
             elif AnalyseurSecurite.remontee_de_dossier(contenu_log):
+                score, pays = verification_ip(ip_source)
                 lot_alertes.append(
-                    creation_alerte(serveur_id, "Path Traversal", ip_source, ligne, date_log)
+                    creation_alerte(serveur_id, "Path Traversal", ip_source, ligne, date_log, score, pays)
                 )
 
     persister_alertes(lot_alertes)
 
 
-def creation_alerte(srv_id, type, ip, lignes, date_log):
+def creation_alerte(srv_id, type, ip, lignes, date_log,score=None, pays=None):
     """Créeation d'un objet Alerte prêt à être sauvegardé."""
+
+    est_liste = False
+    if score is not None and score > 50:
+        est_liste = True
+
     return Alerte(
         id_serveur=srv_id,
         type=type,
         ip_source=ip,
-        ip_liste=False,
+        ip_liste=est_liste,
         log_brut=lignes,
         date_heure=str(date_log),
+        score_fiabilite=score,
+        code_pays=pays    
     )
 
 

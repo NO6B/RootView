@@ -1,4 +1,5 @@
 from app import db
+from datetime import datetime
 
 
 class Utilisateur(db.Model):
@@ -33,3 +34,12 @@ class Alerte(db.Model):
     ip_liste = db.Column(db.Boolean)
     log_brut = db.Column(db.Text)
     date_heure = db.Column(db.String(50), nullable=False)
+    score_fiabilite = db.Column(db.Integer)
+    code_pays = db.Column(db.String(5))
+
+class CacheIP(db.Model):
+    __tablename__ = "CacheIP"
+    ip = db.Column(db.String(100), primary_key=True)
+    score = db.Column(db.Integer)
+    code_pays = db.Column(db.String(5))
+    date_maj = db.Column(db.DateTime, default=datetime.now)
