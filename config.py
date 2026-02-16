@@ -2,9 +2,9 @@ import os
 from dotenv import load_dotenv
 
 
-# Récupère le chemin absolu du dossier courant pour localiser le fichier de BDD
+# Récupération du chemin absolu du dossier courant pour localiser le fichier de BDD
 basedir = os.path.abspath(os.path.dirname(__file__))
-# Charge les variables du fichier .env s'il existe
+# Chargement des variables du fichier .env
 load_dotenv(os.path.join(basedir, ".env"))
 
 
@@ -15,14 +15,14 @@ class Config:
     if not SECRET_KEY:
         raise ValueError("ERREUR : La variable 'SECRET_KEY' est manquante.")
 
-    # Définit l'emplacement où sera stocké le fichier de la base de données.
+    # Définitions de l'emplacement où sera stocké le fichier de la base de données.
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "rootview.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
-# Active la route '/scheduler/jobs' pour visualiser les tâches actives (JSON)
+    # activation la route '/scheduler/jobs' pour visualiser les tâches actives (JSON)
     SCHEDULER_API_ENABLED = True
 
-# CONFIGURATION DES TÂCHES AUTOMATISÉES A EXECUTER
+    # CONFIGURATION DES TÂCHES AUTOMATISÉES A EXECUTER
     JOBS = [
         {
             'id': 'scan_routine',
