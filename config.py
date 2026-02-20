@@ -28,6 +28,6 @@ class Config:
             'id': 'scan_routine',
             'func': 'app.task:scan_global',
             'trigger': 'interval',
-            'minutes': 1
+            'minutes': 5
         }
     ]
