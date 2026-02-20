@@ -1,8 +1,9 @@
 from app import db
 from datetime import datetime
+from flask_login import UserMixin
 
 
-class Utilisateur(db.Model):
+class Utilisateur(db.Model, UserMixin):
     __tablename__ = "Utilisateur"
     id = db.Column(db.Integer, primary_key=True)
     nom_utilisateur = db.Column(db.String(30), unique=True, nullable=False)
