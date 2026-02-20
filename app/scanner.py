@@ -6,11 +6,9 @@ from app.parser import parser_ligne_log
 from app.analyzer import AnalyseurSecurite
 from app.client_abuseipdb import verification_ip
 
-
 # Configuration
 SEUIL_BRUTE_FORCE = 10
 SEUIL_DOS = 100
-
 
 def scan(serveur_id):
     # recuperation d'info serveur de la bdd
@@ -31,11 +29,10 @@ def scan(serveur_id):
 
     print(f"Démarrage sur {serveur.nom}")
 
-    # Extraction des logs via SSH
+    # Extraction des logs via SSH (On lit tout)
     logs_ssh = session_ssh.recuperation_log_systeme()
     logs_web = session_ssh.recuperation_log_web()
 
-    # Traitement analytique du type de log
     if logs_ssh:
         traiter_logs(serveur.id, logs_ssh, "SSH")
     if logs_web:
@@ -56,28 +53,41 @@ def traiter_logs(serveur_id, logs, protocole):
     # Zone accumuler les alertes avant l'envoi en BDD
     lot_alertes = []
 
-    for ligne in lignes:
+    # RÉSOLUTION : On récupère les alertes déjà existantes pour ce serveur
+    # Cela permet de vérifier si on a déjà alerté pour une IP et un type d'attaque
+    alertes_existantes = Alerte.query.filter_by(id_serveur=serveur_id).all()
+    couples_ip_type_existants = [(a.ip_source, a.type) for a in alertes_existantes]
 
+    for ligne in lignes:
+        
         # Structuration de la ligne brute en dictionnaire
         donnees = parser_ligne_log(ligne)
 
         if donnees is None:
             continue
 
-        # Récupération des clés ,adresse_ip / message
+        # Récupération des clés
         ip_source = donnees["adresse_ip"]
         contenu_log = donnees["message"]
         date_log = donnees["date"]
+        
+        # On ignore les connexions réussies
+        if "Accepted" in contenu_log:
+            continue
 
         # Incrémentation Volume (DoS)
         registre_volume[ip_source] += 1
         
-        # Détection DoS :alerte uniquement au moment précis où le seuil est franchit
-        if registre_volume[ip_source] == SEUIL_DOS + 1:
-            score, pays = verification_ip(ip_source)
-            lot_alertes.append(
-                creation_alerte(serveur_id, "DoS", ip_source, ligne, date_log, score, pays)
-            )
+        # Détection DoS
+        if registre_volume[ip_source] > SEUIL_DOS:
+            # Vérification anti-doublon avant de créer l'alerte
+            if (ip_source, "DoS") not in couples_ip_type_existants:
+                score, pays = verification_ip(ip_source)
+                lot_alertes.append(
+                    creation_alerte(serveur_id, "DoS", ip_source, ligne, date_log, score, pays)
+                )
+                # On ajoute au registre local pour ne pas créer de doublon dans la même boucle
+                couples_ip_type_existants.append((ip_source, "DoS"))
 
         # Détection par Protocole
         if protocole == "SSH":
@@ -85,37 +95,44 @@ def traiter_logs(serveur_id, logs, protocole):
                 registre_echecs_ip[ip_source] += 1
                 
                 # Détection Brute Force
-                if registre_echecs_ip[ip_source] == SEUIL_BRUTE_FORCE + 1:
-                     score, pays =verification_ip(ip_source)
-                     lot_alertes.append(
-                        creation_alerte(serveur_id, "SSH Brute Force", ip_source, ligne, date_log, score, pays)
-                    )
+                if registre_echecs_ip[ip_source] > SEUIL_BRUTE_FORCE:
+                    if (ip_source, "SSH Brute Force") not in couples_ip_type_existants:
+                        score, pays = verification_ip(ip_source)
+                        lot_alertes.append(
+                            creation_alerte(serveur_id, "SSH Brute Force", ip_source, ligne, date_log, score, pays)
+                        )
+                        couples_ip_type_existants.append((ip_source, "SSH Brute Force"))
 
             elif AnalyseurSecurite.utilisateur_inconnu(contenu_log):
-                score, pays = verification_ip(ip_source)
-                lot_alertes.append(
-                    creation_alerte(serveur_id, "Invalid User", ip_source, ligne, date_log, score, pays)
-                )
+                if (ip_source, "Invalid User") not in couples_ip_type_existants:
+                    score, pays = verification_ip(ip_source)
+                    lot_alertes.append(
+                        creation_alerte(serveur_id, "Invalid User", ip_source, ligne, date_log, score, pays)
+                    )
+                    couples_ip_type_existants.append((ip_source, "Invalid User"))
 
         elif protocole == "WEB":
             if AnalyseurSecurite.injection_sql(contenu_log):
-                score, pays = verification_ip(ip_source)
-                lot_alertes.append(
-                    creation_alerte(serveur_id, "SQL Injection", ip_source, ligne, date_log, score, pays)
-                )
+                if (ip_source, "SQL Injection") not in couples_ip_type_existants:
+                    score, pays = verification_ip(ip_source)
+                    lot_alertes.append(
+                        creation_alerte(serveur_id, "SQL Injection", ip_source, ligne, date_log, score, pays)
+                    )
+                    couples_ip_type_existants.append((ip_source, "SQL Injection"))
 
             elif AnalyseurSecurite.remontee_de_dossier(contenu_log):
-                score, pays = verification_ip(ip_source)
-                lot_alertes.append(
-                    creation_alerte(serveur_id, "Path Traversal", ip_source, ligne, date_log, score, pays)
-                )
+                if (ip_source, "Path Traversal") not in couples_ip_type_existants:
+                    score, pays = verification_ip(ip_source)
+                    lot_alertes.append(
+                        creation_alerte(serveur_id, "Path Traversal", ip_source, ligne, date_log, score, pays)
+                    )
+                    couples_ip_type_existants.append((ip_source, "Path Traversal"))
 
     persister_alertes(lot_alertes)
 
 
-def creation_alerte(srv_id, type, ip, lignes, date_log,score=None, pays=None):
+def creation_alerte(srv_id, type, ip, lignes, date_log, score=None, pays=None):
     """Créeation d'un objet Alerte prêt à être sauvegardé."""
-
     est_liste = False
     if score is not None and score > 50:
         est_liste = True
@@ -126,7 +143,7 @@ def creation_alerte(srv_id, type, ip, lignes, date_log,score=None, pays=None):
         ip_source=ip,
         ip_liste=est_liste,
         log_brut=lignes,
-        date_heure=str(date_log),
+        date_heure=date_log,
         score_fiabilite=score,
         code_pays=pays    
     )
