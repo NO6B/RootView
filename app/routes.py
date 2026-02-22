@@ -8,16 +8,16 @@ from app.scanner import scan
 
 bp = Blueprint("main", __name__)
 
-# AUTHENTIFICATION
-
 @bp.route("/register", methods=["GET", "POST"])
 def inscription():
     """
-    Crée un nouveau compte utilisateur.
+    Gère la création de nouveaux comptes utilisateurs.
     
-    - Vérifie la validité et l'unicité de l'identifiant.
-    - Sécurise le mot de passe via hachage.
-    - Redirige vers la connexion si succès, sinon réaffiche le formulaire.
+    Vérifie l'absence de doublons dans la base de données et procède au hachage 
+    du mot de passe via l'algorithme PBKDF2 avant l'insertion.
+    
+    Returns:
+        Response: Redirection vers la page de connexion ou rendu du formulaire d'inscription.
     """
     if current_user.is_authenticated:
         return redirect(url_for("main.tableau_de_bord"))
@@ -34,7 +34,6 @@ def inscription():
             return render_template("register.html")
 
         try:
-            # Création avec la méthode pbkdf2:sha256
             nouveau_membre = Utilisateur(
                 nom_utilisateur=nom,
                 mot_de_passe_hash=generate_password_hash(mdp, method='pbkdf2:sha256')
@@ -44,24 +43,24 @@ def inscription():
             return redirect(url_for("main.connexion"))
         except Exception as e:
             db.session.rollback()
-            print(f"DEBUG SQL: {e}")
+            print(f"Error: {e}")
 
     return render_template("register.html")
+
+
+
 
 @bp.route("/")
 @bp.route("/login", methods=["GET", "POST"])
 def connexion():
     """
-    Gère l'authentification des utilisateurs.
-
-    Vérifie les identifiants soumis via le formulaire de connexion. En cas de succès,
-    établit une session pour l'utilisateur.
-
-    Arguments:
-        Aucun (récupère les données via 'request.form').
-
-    Retourne:
-        Redirection vers le tableau de bord si succès, sinon réaffiche la page de login.
+    Authentifie un utilisateur et initialise la session de navigation.
+    
+    Vérifie la correspondance entre le pseudonyme et le hash du mot de passe.
+    Utilise Flask-Login pour la gestion de l'état de connexion.
+    
+    Returns:
+        Response: Redirection vers le tableau de bord ou rendu de la page de login.
     """
     if current_user.is_authenticated:
         return redirect(url_for("main.tableau_de_bord"))
@@ -82,98 +81,65 @@ def connexion():
 @login_required
 def deconnexion():
     """
-    Déconnecte l'utilisateur actuel.
-
-    Termine la session Flask-Login et redirige vers la page de connexion.
-
-    Retourne:
-        Redirection vers la route de connexion.
+    Clôture la session active de l'utilisateur courant.
+    
+    Returns:
+        Response: Redirection vers la page de connexion.
     """
     logout_user()
     return redirect(url_for("main.connexion"))
 
 
-# SECTION TABLEAU DE BORD ET STATISTIQUES
+
+
 
 @bp.route("/dashboard")
 @login_required
 def tableau_de_bord():
     """
-    Génère les statistiques consolidées des alertes pour l'utilisateur.
-
-    Récupère les serveurs de l'utilisateur, extrait les alertes associées,
-    et les regroupe par couple (IP source, Serveur) en utilisant une clé composite.
-
-    Retourne:
-        Le template HTML du tableau de bord avec les bilans d'attaques formatés.
+    Récupère et affiche la synthèse des menaces détectées pour l'utilisateur.
+    
+    Requête la base de données pour obtenir les serveurs du propriétaire et
+    les alertes associées, classées de la plus récente à la plus ancienne.
+    
+    Returns:
+        render_template: Page HTML injectée avec la liste des alertes et serveurs.
     """
     mes_serveurs = Serveur.query.filter_by(id_utilisateur=current_user.id).all()
-    
-    ids_serveurs = []
-    noms_serveurs = {}
-    for s in mes_serveurs:
-        ids_serveurs.append(s.id)
-        noms_serveurs[s.id] = s.nom
+    ids_serveurs = [s.id for s in mes_serveurs]
+    noms_serveurs = {s.id: s.nom for s in mes_serveurs}
 
     if not ids_serveurs:
-        return render_template("dashboard.html", stats_attaques=[], noms_serveurs={})
+        return render_template("dashboard.html", alertes=[], noms_serveurs={}, total_infractions=0)
 
-    # Récupération des alertes
-    alertes_brutes = Alerte.query.filter(Alerte.id_serveur.in_(ids_serveurs)).all()
+    # Récupération de toutes les alertes
+    alertes_brutes = Alerte.query.filter(
+        Alerte.id_serveur.in_(ids_serveurs)
+    ).order_by(Alerte.date_heure.desc()).all()
 
-    # Regrouper les statistiques par IP
-    dict_stats = {}
-    for alerte in alertes_brutes:
-        # configuration de la cle d'acces a un dict
-        cle_ip_serveur = (alerte.ip_source, alerte.id_serveur)
-        
-        if cle_ip_serveur not in dict_stats:
-            dict_stats[cle_ip_serveur] = {
-                'ip_source': alerte.ip_source,
-                'id_serveur': alerte.id_serveur,
-                'types_detectes': set(),
-                'nb_essais': 0,
-                'derniere_tentative': alerte.date_heure,
-                'est_dangereuse': alerte.ip_liste
-
-            }
-        
-        dict_stats[cle_ip_serveur]['types_detectes'].add(alerte.type)
-        dict_stats[cle_ip_serveur]['nb_essais'] += 1
-
-        if alerte.ip_liste:
-            dict_stats[cle_ip_serveur]['est_dangereuse'] = True
-
-        # Mise à jour des compteurs et des types d'attaques
-        if alerte.date_heure > dict_stats[cle_ip_serveur]['derniere_tentative']:
-            dict_stats[cle_ip_serveur]['derniere_tentative'] = alerte.date_heure
-
-    stats_attaques = sorted(
-        list(dict_stats.values()), 
-        key=lambda x: x['derniere_tentative'], 
-        reverse=True
-    )
-
-    for info in stats_attaques:
-        info['type_alerte'] = ", ".join(info['types_detectes'])
+    total_infractions = len(alertes_brutes)
 
     return render_template(
         "dashboard.html",
-        stats_attaques=stats_attaques,
-        noms_serveurs=noms_serveurs
+        alertes=alertes_brutes,
+        noms_serveurs=noms_serveurs,
+        total_infractions=total_infractions
     )
+
+
+
 
 @bp.route("/servers", methods=["GET", "POST"])
 @login_required
 def gestion_serveurs():
     """
-    Affiche la liste des serveurs et gère l'ajout de nouvelles machines.
-
-    Méthode POST : Valide et enregistre un nouveau serveur en base de données.
-    Méthode GET : Récupère la liste complète des serveurs de l'utilisateur.
-
-    Retourne:
-        Template 'servers.html' avec la liste mise à jour des serveurs.
+    Permet l'enregistrement de nouveaux serveurs distants.
+    
+    Enregistre les paramètres de connexion (IP, Utilisateur SSH, Clé) nécessaires
+    au fonctionnement futur du module de scan.
+    
+    Returns:
+        render_template: Page de gestion des serveurs avec la liste des machines actuelles.
     """
     if request.method == "POST":
         nom = request.form.get("nom")
@@ -181,27 +147,24 @@ def gestion_serveurs():
         user_ssh = request.form.get("user_ssh")
         key_ssh = request.form.get("key_ssh")
         
-
         try:
-                # Création de l'objet Serveur
-                nouveau_serveur = Serveur(
-                    nom=nom,
-                    adresse_ip=ip,
-                    utilisateur_ssh=user_ssh,
-                    clef_ssh=key_ssh,
-                    id_utilisateur=current_user.id
-                )
-                
-                db.session.add(nouveau_serveur)
-                db.session.commit()
+            nouveau_serveur = Serveur(
+                nom=nom,
+                adresse_ip=ip,
+                utilisateur_ssh=user_ssh,
+                clef_ssh=key_ssh,
+                id_utilisateur=current_user.id
+            )
+            db.session.add(nouveau_serveur)
+            db.session.commit()
         except Exception as e:
-                db.session.rollback()
+            db.session.rollback()
             
         return redirect(url_for("main.gestion_serveurs"))
 
-    # affichage liste de serveurs
     liste_serveurs = Serveur.query.filter_by(id_utilisateur=current_user.id).all()
     return render_template("servers.html", serveurs=liste_serveurs)
+
 
 
 
@@ -209,79 +172,77 @@ def gestion_serveurs():
 @login_required
 def supprimer_serveur(id_serveur):
     """
-    Supprime un serveur et toutes les alertes qui lui sont rattachées.
-
-    Vérifie la propriété du serveur avant toute action pour garantir la sécurité.
-
-    Arguments:
-        id_serveur (int): L'identifiant unique du serveur à supprimer.
-
-    Retourne:
-        Redirection vers la liste des serveurs.
+    Supprime définitivement un serveur et purge ses données d'alertes associées.
+    
+    Vérifie les droits de propriété avant d'effectuer la suppression en cascade 
+    pour maintenir l'intégrité de la base de données.
+    
+    Args:
+        id_serveur (int): L'identifiant du serveur à supprimer.
+        
+    Returns:
+        Response: Redirection vers la page de gestion des serveurs.
     """
     serveur_a_supprimer = Serveur.query.get_or_404(id_serveur)
     
-    # vérification que le serveur appartient à l'utilisateur connecté
     if serveur_a_supprimer.id_utilisateur != current_user.id:
         return redirect(url_for('main.gestion_serveurs'))
 
     try:
         Alerte.query.filter_by(id_serveur=id_serveur).delete()
-        
         db.session.delete(serveur_a_supprimer)
         db.session.commit()
     except Exception as e:
         db.session.rollback()
         print(f"Erreur technique : {e}")
     
-    # redirection vers la liste des serveurs
     return redirect(url_for('main.gestion_serveurs'))
+
+
 
 
 @bp.route("/scan/run", methods=["POST"])
 @login_required
 def lancer_scan():
     """
-    Déclenche manuellement le processus de scan uniquement pour les serveurs
-    appartenant à l'utilisateur connecté (Autorisation).
+    Déclenche manuellement l'analyse de sécurité sur tout le serveur de l'utilisateur.
+    
+    Boucle sur chaque serveur enregistré et appelle le moteur de scan pour 
+    mettre à jour la base de données d'alertes.
+    
+    Returns:
+        Response: Redirection vers le tableau de bord une fois le scan terminé.
     """
     try:
         mes_serveurs = Serveur.query.filter_by(id_utilisateur=current_user.id).all()
-        
         for serveur in mes_serveurs:
             scan(serveur.id)
-            
     except Exception as e:
         print(f"Erreur lors du scan manuel : {e}")
         
     return redirect(url_for("main.tableau_de_bord"))
 
 
+
+
 @bp.route("/details/<ip>")
 @login_required
 def details_attaques_ip(ip):
     """
-    Affiche l'historique complet des alertes pour une adresse IP spécifique.
-
-    Filtre les alertes pour qu'elles correspondent uniquement aux serveurs
-    appartenant à l'utilisateur connecté.
-
-    Arguments:
-        ip (str): L'adresse IP source dont on souhaite voir les détails.
-
-    Retourne:
-        Le template 'details_ip.html' avec la liste chronologique des alertes.
+    Affiche l'historique exhaustif des attaques provenant d'une adresse IP spécifique.
+    
+    Args:
+        ip (str): L'adresse IP dont on souhaite consulter l'historique d'infractions.
+        
+    Returns:
+        render_template: Page de détails filtrée par adresse IP source.
     """
     mes_serveurs = Serveur.query.filter_by(id_utilisateur=current_user.id).all()
-    ids = []
-    for s in mes_serveurs:
-        ids.append(s.id)
+    ids = [s.id for s in mes_serveurs]
     
-    # Recuperation des logs détaillés d'une ip
     alertes_details = Alerte.query.filter(
         Alerte.ip_source == ip,
         Alerte.id_serveur.in_(ids)
     ).order_by(Alerte.date_heure.desc()).all()
 
     return render_template("details_ip.html", ip=ip, alertes=alertes_details)
-
