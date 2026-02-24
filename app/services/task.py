@@ -1,11 +1,10 @@
 from app import schedule
 from app.models import Serveur
-from app.scanner import scan
+from app.services.scanner import scan
 
 def scan_global():
-    # Active l'accès à la BDD et à la config (car dans un thread different).
+    # activation l'accès à la BDD et à la config (car dans un thread different).
     with schedule.app.app_context():
-    # On utilise un bloc try/except global pour éviter que le scheduler ne crash
         try:
             # Récupération de tous les serveurs
             serveurs = Serveur.query.all()
