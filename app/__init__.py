@@ -26,7 +26,7 @@ def creer_application():
 
     login_manager.init_app(app)
 
-    login_manager.login_view = 'main.login'
+    login_manager.login_view = 'main.connexion'
 
     # injection des routes de 'bp' dans l'instance 'app'
     app.register_blueprint(bp)
