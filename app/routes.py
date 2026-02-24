@@ -254,3 +254,13 @@ def details_attaques_ip(ip):
     ).order_by(Alerte.date_heure.desc()).all()
 
     return render_template("details_ip.html", ip=ip, alertes=alertes_details)
+
+
+@bp.route("/recommendations")
+@login_required
+def recommandations():
+    """
+    Returns:
+        render_template: Page HTML détaillant les procédures de défense pour chaque vecteur d'attaque.
+    """
+    return render_template("recommendations.html")

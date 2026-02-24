@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Playbook de Remédiation</h1>
+        <p class="text-gray-400">Procédures techniques et mesures d'atténuation recommandées pour chaque vecteur d'attaque.</p>
+    </div>
+
+    <div class="space-y-6">
+
+        <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
+                <i class="bi bi-terminal text-2xl text-purple-400"></i>
+                <h2 class="text-xl font-bold text-white">Attaques SSH (Brute Force & Invalid User)</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300 mb-4 text-sm">Le blocage manuel d'adresses IP est insuffisant face aux réseaux de botnets. Une modification de la configuration du service SSH est indispensable pour neutraliser ce vecteur.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">1. Authentification par clés</h4>
+                        <p class="text-sm text-gray-400 mb-2">Désactivez les mots de passe dans <code class="text-gray-200">/etc/ssh/sshd_config</code> :</p>
+                        <code class="block bg-black p-3 rounded text-green-400 text-xs font-mono mb-2">PasswordAuthentication no<br>PermitRootLogin prohibit-password</code>
+                    </div>
+
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">2. Liste Blanche (AllowUsers)</h4>
+                        <p class="text-sm text-gray-400 mb-2">Contrez le vecteur "Invalid User" en n'autorisant que vos comptes légitimes dans <code class="text-gray-200">sshd_config</code> :</p>
+                        <code class="block bg-black p-3 rounded text-green-400 text-xs font-mono mb-2"># N'autoriser que cet utilisateur<br>AllowUsers admin_rootview</code>
+                    </div>
+
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">3. Déploiement d'un IPS</h4>
+                        <p class="text-sm text-gray-400 mb-2">Automatisez le bannissement via iptables avec Fail2ban :</p>
+                        <code class="block bg-black p-3 rounded text-green-400 text-xs font-mono mb-2">sudo apt install fail2ban<br>sudo systemctl enable --now fail2ban</code>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-rootdark p-3 rounded border border-gray-700">
+                    <p class="text-sm text-gray-400">N'oubliez pas de redémarrer le service après toute modification de configuration :</p>
+                    <code class="block bg-black p-2 mt-2 rounded text-green-400 text-xs font-mono select-all">sudo systemctl restart sshd</code>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
+                <i class="bi bi-database-exclamation text-2xl text-red-400"></i>
+                <h2 class="text-xl font-bold text-white">Injection SQL (SQLi)</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300 mb-4 text-sm">Une attaque par injection SQL indique une vulnérabilité critique dans le traitement des entrées utilisateur au niveau de l'application web.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">1. Correction Applicative (Requêtes Préparées)</h4>
+                        <p class="text-sm text-gray-400 mb-2">Ne concaténez jamais les entrées utilisateur directement dans les requêtes SQL. Utilisez des requêtes paramétrées ou un ORM (ex: SQLAlchemy en Python, PDO en PHP).</p>
+                        <code class="block bg-black p-3 rounded text-green-400 text-xs font-mono mb-2"># Mauvais :<br>cursor.execute("SELECT * FROM users WHERE nom='" + input + "'")<br><br># Bon (Requête paramétrée) :<br>cursor.execute("SELECT * FROM users WHERE nom=?", (input,))</code>
+                    </div>
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">2. Web Application Firewall (WAF)</h4>
+                        <p class="text-sm text-gray-400 mb-2">Déployez un WAF pour filtrer les signatures d'attaques HTTP avant qu'elles n'atteignent le serveur d'application.</p>
+                        <ul class="list-disc list-inside text-sm text-gray-400 space-y-1">
+                            <li><strong>ModSecurity :</strong> Intégration Nginx/Apache avec les règles OWASP CRS.</li>
+                            <li><strong>Cloudflare WAF :</strong> Solution DNS proxy filtrant le trafic entrant.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
+                <i class="bi bi-folder-x text-2xl text-orange-400"></i>
+                <h2 class="text-xl font-bold text-white">Path Traversal (LFI / Directory Traversal)</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300 mb-4 text-sm">Cette attaque vise à accéder à des fichiers système sensibles (ex: <code class="text-gray-200">/etc/passwd</code>) en manipulant les chemins d'accès relatifs (<code class="text-gray-200">../</code>).</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">1. Validation et Nettoyage des Entrées</h4>
+                        <p class="text-sm text-gray-400 mb-2">Validez strictement les paramètres demandant des fichiers. Rejetez toute entrée contenant <code class="text-gray-200">.</code> ou <code class="text-gray-200">/</code>.</p>
+                        <p class="text-sm text-gray-400">Utilisez des fonctions natives pour résoudre le chemin absolu et vérifiez qu'il appartient bien au répertoire autorisé (ex: <code class="text-gray-200">os.path.abspath()</code> en Python combiné avec <code class="text-gray-200">os.path.commonpath()</code>).</p>
+                    </div>
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">2. Principe de Moindre Privilège</h4>
+                        <p class="text-sm text-gray-400 mb-2">Le processus du serveur web (ex: <code class="text-gray-200">www-data</code>) ne doit avoir les droits de lecture que sur le dossier contenant les fichiers publics.</p>
+                        <p class="text-sm text-gray-400">Pour une sécurité maximale, exécutez le service web dans un environnement isolé (chroot jail) ou un conteneur (Docker).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
+                <i class="bi bi-activity text-2xl text-blue-400"></i>
+                <h2 class="text-xl font-bold text-white">Déni de Service Applicatif (HTTP Flood - Couche 7)</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300 mb-4 text-sm">Une adresse IP génère un volume anormal de requêtes HTTP dans le but d'épuiser les ressources du serveur web (workers, RAM, base de données). Vos logs indiquent une attaque de type HTTP Flood.</p>
+                <div class="bg-rootdark p-4 rounded border border-gray-700">
+                    <h4 class="text-blue-400 font-bold mb-2">Actions et Configurations (Couche 7)</h4>
+                    <ul class="list-disc list-inside text-sm text-gray-400 space-y-3">
+                        <li>
+                            <strong>Limitation de taux (Rate Limiting) :</strong>
+                            Configurez votre serveur web pour restreindre le nombre de requêtes HTTP par IP.
+                            <br><span class="inline-block mt-1 text-gray-500 text-xs">Exemple Nginx : Utilisation des directives <code class="text-gray-300">limit_req_zone</code> et <code class="text-gray-300">limit_req</code>.</span>
+                        </li>
+                        <li>
+                            <strong>Bannissement dynamique (Fail2ban) :</strong>
+                            Créez une règle (jail) Fail2ban configurée pour analyser les logs web (`access.log`) et bloquer temporairement via iptables toute IP dépassant un certain seuil de requêtes par seconde.
+                        </li>
+                        <li>
+                            <strong>Filtrage applicatif externe (CDN/WAF) :</strong>
+                            Placez votre application derrière un CDN et activez des protections de couche 7 (ex: "JS Challenges" de Cloudflare pour bloquer les requêtes automatisées, ou des règles de Rate Limiting au niveau du proxy).
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
