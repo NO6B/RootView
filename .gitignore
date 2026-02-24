@@ -1,9 +1,9 @@
 # Environnement virtuel (Python)
 venv/
-# Cache Python (Fichiers générés automatiquement)
+# Cache Python
 **/__pycache__/
 # Base de données
-instance/
 *.db
 *.sqlite3
 .env
+node_modules/
