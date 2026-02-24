@@ -7,14 +7,14 @@ Flask-APScheduler
 # Connexion SSH aux serveurs Linux
 paramiko
 
-# Appels API vers AbuseIPDB
+# Communication & API
 requests
 
 # Gestion des secrets (.env)
 python-dotenv
 
-# Tests automatisés (Sprint 3)
+# Tests automatisés
 pytest
 
-# Qualité du code (Sprint 3)
+# Qualité du code
 flake8
