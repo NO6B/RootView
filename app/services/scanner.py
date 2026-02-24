@@ -3,10 +3,10 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from app import db
 from app.models import Serveur, Alerte
-from app.ssh_client import GestionnaireSSH
-from app.parser import parser_ligne_log
-from app.analyzer import AnalyseurSecurite
-from app.client_abuseipdb import verification_ip
+from app.services.ssh_client import GestionnaireSSH
+from app.services.parser import parser_ligne_log
+from app.services.analyzer import AnalyseurSecurite
+from app.services.client_abuseipdb import verification_ip
 
 
 load_dotenv()
