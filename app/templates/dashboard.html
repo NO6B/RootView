@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% set dernier_moment = alertes[0].date_heure if alertes else "Aucune activité" %}
+
+<div class="max-w-7xl mx-auto">
+    
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-white">Vue d'ensemble des attaques</h1>
+        <form action="{{ url_for('main.lancer_scan') }}" method="POST">
+            <button type="submit" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded border border-gray-700 flex items-center gap-2 transition text-sm">
+                <i class="bi bi-search"></i> Lancer l'analyse
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-panel rounded-xl p-6 border border-gray-800 shadow-lg flex flex-col justify-center">
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-gray-400 text-sm font-medium">Nombre total d'infractions</span>
+                <i class="bi bi-activity text-blue-500"></i>
+            </div>
+            <div class="text-3xl font-bold text-white">{{ total_infractions }}</div>
+        </div>
+
+        <div class="bg-panel rounded-xl p-6 border border-gray-800 shadow-lg flex flex-col justify-center">
+            <div class="flex justify-between items-start mb-2">
+                <span class="text-gray-400 text-sm font-medium">Dernière activité détectée</span>
+                <i class="bi bi-clock-history text-gray-500"></i>
+            </div>
+            <div class="text-xl font-bold text-gray-300 font-mono">{{ dernier_moment }}</div>
+        </div>
+    </div>
+
+    <div class="mb-10">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="bi bi-shield-exclamation text-red-500 text-xl"></i>
+            <h2 class="text-xl font-bold text-white">Toutes les Menaces Détectées</h2>
+            <span class="text-sm text-gray-500 ml-2">Flux combiné : Web, SSH et Système</span>
+        </div>
+        
+        <div class="bg-panel rounded-xl border border-gray-800 shadow-lg overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-panel text-gray-500 text-sm border-b border-gray-800">
+                        <th class="px-6 py-4 font-medium">Dernière Activité</th>
+                        <th class="px-6 py-4 font-medium">IP Attaquante</th>
+                        <th class="px-6 py-4 font-medium">Serveur ciblé</th>
+                        <th class="px-6 py-4 font-medium text-center">Total Attaques</th>
+                        <th class="px-6 py-4 font-medium">Type</th>
+                        <th class="px-6 py-4 font-medium">Score AbuseIPDB</th>
+                        <th class="px-6 py-4 font-medium">Pays</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800">
+                    {% set ips_vues = namespace(liste=[]) %}
+                    
+                    {% for alerte in alertes %}
+                        {#vérification de l'ip pour n'avoir qu'une ligne par attaquant #}
+                        {% if alerte.ip_source not in ips_vues.liste %}
+                            {% set _ = ips_vues.liste.append(alerte.ip_source) %}
+                            
+                            {#Récupération toutes les alertes de d'une ip  #}
+                            {% set alertes_ip = alertes | selectattr('ip_source', 'equalto', alerte.ip_source) | list %}
+                            
+                            {# Calculer le total des attaques #}
+                            {% set nombre_attaques = alertes_ip | length %}
+                            
+                            {# Extraire une liste unique de tous les types d'attaques pour cette IP #}
+                            {% set types_uniques = alertes_ip | map(attribute='type') | unique | list %}
+
+                            <tr class="hover:bg-gray-800 transition">
+                                <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ alerte.date_heure }}</td>
+                                
+                                <td class="px-6 py-4 text-sm text-gray-300 font-mono">
+                                    <a href="{{ url_for('main.details_attaques_ip', ip=alerte.ip_source) }}" class="text-blue-500 hover:text-blue-400 font-medium transition" title="Voir les détails de l'IP">
+                                        {{ alerte.ip_source }}
+                                    </a>
+                                </td>
+
+                                <td class="px-6 py-4 text-sm text-gray-400">{{ noms_serveurs.get(alerte.id_serveur, 'Inconnu') }}</td>
+                                
+                                <td class="px-6 py-4 text-sm font-bold text-white text-center">
+                                    {{ nombre_attaques }}
+                                </td>
+
+                                <td class="px-6 py-4 text-sm flex flex-wrap gap-2">
+                                    {# généreration d'un badge pour chaque type d'attaque #}
+                                    {% for type_attaque in types_uniques %}
+                                        {% if type_attaque in ['SQL Injection', 'Path Traversal'] %}
+                                            <span class="px-2 py-1 bg-purple-900 bg-opacity-30 text-purple-400 border border-purple-800 rounded text-xs font-medium whitespace-nowrap">
+                                                {{ type_attaque }}
+                                            </span>
+                                        {% else %}
+                                            <span class="px-2 py-1 bg-blue-900 bg-opacity-30 text-blue-400 border border-blue-800 rounded text-xs font-medium whitespace-nowrap">
+                                                {{ type_attaque }}
+                                            </span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+
+                                <td class="px-6 py-4 text-sm font-bold {{ 'text-red-400' if alerte.score_fiabilite is not none and alerte.score_fiabilite > 50 else 'text-gray-400' }}">
+                                    {{ 'Danger' if alerte.ip_liste else 'Fiable' }}
+                                </td>
+
+                                <td class="px-6 py-4 text-sm text-gray-400">
+                                    {{ alerte.code_pays if alerte.code_pays else 'Inconnu' }}
+                                </td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
