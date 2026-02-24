@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_required, login_user, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 from app import db
 from app.models import Utilisateur, Alerte, Serveur
-from app.scanner import scan
+from app.services.scanner import scan
+from app.services.validators import validation
 
 
 bp = Blueprint("main", __name__)
@@ -23,14 +24,19 @@ def inscription():
         return redirect(url_for("main.tableau_de_bord"))
 
     if request.method == "POST":
-        nom = request.form.get("username")
-        mdp = request.form.get("password")
-
+        nom = request.form.get("identifiant")
+        mdp = request.form.get("motdepass")
         if not nom or not mdp:
+            return render_template("register.html")
+        
+        valide, erreur =validation(nom, mdp)
+        if not valide:
+            flash(erreur, "error")
             return render_template("register.html")
 
         utilisateur_existant = Utilisateur.query.filter_by(nom_utilisateur=nom).first()
         if utilisateur_existant:
+            flash("Cet identifiant est déjà utilisé.", "error")
             return render_template("register.html")
 
         try:
@@ -40,6 +46,7 @@ def inscription():
             )
             db.session.add(nouveau_membre)
             db.session.commit()
+            flash("Compte créé avec succès", "success")
             return redirect(url_for("main.connexion"))
         except Exception as e:
             db.session.rollback()
@@ -66,15 +73,16 @@ def connexion():
         return redirect(url_for("main.tableau_de_bord"))
 
     if request.method == "POST":
-        nom_utilisateur = request.form.get("username")
-        mot_de_passe = request.form.get("password")
+        nom_utilisateur = request.form.get("identifiant")
+        mot_de_passe = request.form.get("motdepass")
         
         utilisateur = Utilisateur.query.filter_by(nom_utilisateur=nom_utilisateur).first()
 
         if utilisateur and check_password_hash(utilisateur.mot_de_passe_hash, mot_de_passe):
             login_user(utilisateur)
             return redirect(url_for("main.tableau_de_bord"))
-
+        flash("Identifiant ou mot de passe incorrect.", "error")
+    
     return render_template("login.html")
 
 @bp.route("/logout")
