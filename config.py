@@ -26,8 +26,8 @@ class Config:
     JOBS = [
         {
             'id': 'scan_routine',
-            'func': 'app.task:scan_global',
+            'func': 'app.services.task:scan_global',
             'trigger': 'interval',
-            'minutes': 1
+            'minutes': 5
         }
     ]

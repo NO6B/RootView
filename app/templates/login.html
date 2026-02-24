@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[70vh]">
+    <div class="w-full max-w-md bg-panel p-8 rounded-xl border border-gray-800 shadow-2xl">
+        <div class="text-center mb-8">
+            <i class="bi bi-shield-lock text-blue-500 text-5xl mb-4 block"></i>
+            <h2 class="text-3xl font-bold text-white mb-2">RootView</h2>
+            <p class="text-gray-400">Authentification requise</p>
+        </div>
+
+                {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="p-3 mb-4 text-sm bg-red-900/20 text-red-400 border border-red-500/50 rounded-lg">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form method="POST" action="{{ url_for('main.connexion') }}" class="space-y-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Identifiant</label>
+                <input type="text" name="identifiant" required 
+                       class="w-full bg-rootdark border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2">Mot de passe</label>
+                <input type="password" name="motdepass" required 
+                       class="w-full bg-rootdark border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition">
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg transition shadow-lg">
+                Se connecter
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center text-sm">
+            <span class="text-gray-500">Pas encore de compte ?</span>
+            <a href="{{ url_for('main.inscription') }}" class="text-blue-500 hover:text-blue-400 font-medium ml-1 transition">Créer un profil</a>
+        </div>
+
+        <div class="mt-8 text-center text-xs text-gray-600 border-t border-gray-800 pt-4">
+            Système de surveillance RootView • Accès restreint
+        </div>
+    </div>
+</div>
+{% endblock %}

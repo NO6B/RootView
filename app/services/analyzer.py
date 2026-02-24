@@ -5,31 +5,33 @@ class AnalyseurSecurite:
 
     @staticmethod
     def echec_de_mot_de_passe(contenu_log):
-        # Cherche la phrase exacte générée par Linux
-        return "Failed password" in contenu_log
+        patterns = [
+            "Failed password", 
+            "Connection closed by authenticating user",
+            "Connection reset by authenticating user"
+        ]
+        return any(motif in contenu_log for motif in patterns)
 
     @staticmethod
     def utilisateur_inconnu(contenu_log):
-        # Cherche "Invalid user" ou "Illegal user" (Majuscules ignorées)
         return bool(re.search(r"(invalid|illegal)\s+user", contenu_log, re.IGNORECASE))
 
     # --- RÈGLES WEB ---
 
     @staticmethod
     def injection_sql(contenu_log):
-        # Cherche des commandes SQL dangereuses
         patterns = [
-            r"UNION\s+SELECT",
-            r"SELECT\s+.*FROM",
-            r"OR\s+1=1",
-            r"DROP\s+TABLE"
+            r"UNION(\s+|%20| \+ )+SELECT",
+            r"SELECT(\s+|%20| \+ )+.*FROM",
+            r"OR(\s+|%20| \+ )*1(\s+|%20| \+ )*=(\s+|%20| \+ )*1",
+            r"DROP(\s+|%20| \+ )+TABLE",
+            r"%27",
+            r"--"
         ]
-        # Vérifie si l'un des patterns est présent
         return bool(re.search("|".join(patterns), contenu_log, re.IGNORECASE))
 
     @staticmethod
     def remontee_de_dossier(contenu_log):
-        # Cherche des tentatives d'accès aux fichiers système (Path Traversal)
         patterns = [r"\.\./", r"/etc/passwd", r"/bin/bash"]
         return bool(re.search("|".join(patterns), contenu_log, re.IGNORECASE))
 
@@ -37,5 +39,4 @@ class AnalyseurSecurite:
 
     @staticmethod
     def depasse_le_seuil(compteur, limite):
-        # comparaison mathématique
         return compteur > limite
