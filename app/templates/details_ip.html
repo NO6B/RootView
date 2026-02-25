@@ -56,7 +56,7 @@
                     </td>
 
                     <td class="px-6 py-4 text-sm font-bold {{ 'text-red-400' if alerte.score_fiabilite and alerte.score_fiabilite > 50 else 'text-gray-400' }}">
-                        {{ alerte.score_fiabilite if alerte.score_fiabilite else 'N/A' }}
+                        {{ alerte.score_fiabilite if alerte.score_fiabilite is not none else 'N/A' }}
                     </td>
 
                     <td class="px-6 py-4 text-sm text-gray-400">

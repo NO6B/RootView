@@ -40,7 +40,7 @@ class GestionnaireSSH:
     def recuperation_log_systeme(self):
         try:
             # execution de la command
-            stdin, stdout, stderr = self.client.exec_command('sudo cat /var/log/auth.log')
+            stdin, stdout, stderr = self.client.exec_command('sudo tail -n 1000 /var/log/auth.log')
             # récuperation du résultat binaire, et le traduit en texte
             return stdout.read().decode('utf-8')
         except Exception as e:
@@ -49,7 +49,7 @@ class GestionnaireSSH:
     def recuperation_log_web(self):
             try:
                 # execution de la command
-                stdin, stdout, stderr = self.client.exec_command('sudo cat /var/log/apache2/access.log')
+                stdin, stdout, stderr = self.client.exec_command('sudo tail -n 1000 /var/log/apache2/access.log')
                 # récuperation du résultat binaire, et le traduit en texte
                 return stdout.read().decode('utf-8')
             except Exception as e:

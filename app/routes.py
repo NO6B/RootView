@@ -143,7 +143,7 @@ def gestion_serveurs():
     """
     Permet l'enregistrement de nouveaux serveurs distants.
     
-    Enregistre les paramètres de connexion (IP, Utilisateur SSH, Clé) nécessaires
+    Enregistre les paramètres de connexion (IP, Utilisateur SSH, Clé, endpoint) nécessaires
     au fonctionnement futur du module de scan.
     
     Returns:
@@ -154,6 +154,7 @@ def gestion_serveurs():
         ip = request.form.get("ip")
         user_ssh = request.form.get("user_ssh")
         key_ssh = request.form.get("key_ssh")
+        endpoint = request.form.get("endpoint") or "/login"
         
         try:
             nouveau_serveur = Serveur(
@@ -161,7 +162,8 @@ def gestion_serveurs():
                 adresse_ip=ip,
                 utilisateur_ssh=user_ssh,
                 clef_ssh=key_ssh,
-                id_utilisateur=current_user.id
+                id_utilisateur=current_user.id,
+                endpoint_web=endpoint
             )
             db.session.add(nouveau_serveur)
             db.session.commit()

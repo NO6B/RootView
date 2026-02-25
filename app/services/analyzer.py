@@ -35,8 +35,17 @@ class AnalyseurSecurite:
         patterns = [r"\.\./", r"/etc/passwd", r"/bin/bash"]
         return bool(re.search("|".join(patterns), contenu_log, re.IGNORECASE))
 
-    # --- RÈGLE VOLUME (DOS) ---
 
     @staticmethod
-    def depasse_le_seuil(compteur, limite):
-        return compteur > limite
+    def brute_force_endpoint(methode_log, endpoint, endpoint_configure, status_code):
+        """
+        Vérifie si une requête correspond à une tentative de connexion échouée
+        sur l'endpoint spécifique paramétré pour ce serveur.
+        """
+        cible_atteinte = (methode_log == "POST" and endpoint == endpoint_configure)
+        
+        codes_echec = ["401", "403", "404"]
+        echec_confirme = status_code in codes_echec
+        
+        return cible_atteinte and echec_confirme
+    
