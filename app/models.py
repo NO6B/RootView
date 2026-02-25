@@ -22,6 +22,7 @@ class Serveur(db.Model):
     adresse_ip = db.Column(db.String(100), nullable=False)
     utilisateur_ssh = db.Column(db.String(100), nullable=False)
     clef_ssh = db.Column(db.Text)
+    endpoint_web = db.Column(db.String(255), nullable=False, default='/login')
 
     alertes = db.relationship("Alerte", backref="serveur_cible", lazy=True)
 
