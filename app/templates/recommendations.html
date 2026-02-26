@@ -94,6 +94,33 @@
 
         <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
             <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
+                <i class="bi bi-shield-lock text-2xl text-yellow-400"></i>
+                <h2 class="text-xl font-bold text-white">WEB Brute Force</h2>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-300 mb-4 text-sm">Des attaquants tentent de forcer l'accès à vos pages d'authentification (ex: <code class="text-gray-200">/login</code>, <code class="text-gray-200">/wp-admin</code>) en testant massivement des combinaisons de mots de passe.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">1. Limitation des tentatives (Lockout)</h4>
+                        <p class="text-sm text-gray-400 mb-2">Implémentez un mécanisme de verrouillage de compte après N échecs consécutifs (ex: 5 essais).</p>
+                        <p class="text-sm text-gray-400">Liez ce verrouillage à l'identifiant visé ET à l'adresse IP source pour contrer les attaques distribuées.</p>
+                    </div>
+                    <div class="bg-rootdark p-4 rounded border border-gray-700">
+                        <h4 class="text-blue-400 font-bold mb-2">2. Authentification Multi-Facteurs (MFA)</h4>
+                        <p class="text-sm text-gray-400 mb-2">Le MFA rend le Brute Force inutile. Même si l'attaquant devine le mot de passe, il ne possède pas le jeton temporaire (TOTP).</p>
+                        <p class="text-sm text-gray-400">Pour les panels d'administration critiques, l'utilisation de clés physiques (FIDO2/WebAuthn) est fortement recommandée.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-rootdark p-4 rounded border border-gray-700">
+                    <h4 class="text-blue-400 font-bold mb-2">3. Protection Invisible (Bonus)</h4>
+                    <p class="text-sm text-gray-400 mb-2">Pour ralentir les bots sans gêner les vrais utilisateurs, ajoutez un délai artificiel croissant après chaque échec d'authentification (ex: +1 seconde par échec) ou intégrez un défi invisible (comme Cloudflare Turnstile ou reCAPTCHA v3).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-panel rounded-xl border border-gray-800 overflow-hidden shadow-lg">
+            <div class="px-6 py-4 border-b border-gray-800 bg-black bg-opacity-20 flex items-center gap-3">
                 <i class="bi bi-activity text-2xl text-blue-400"></i>
                 <h2 class="text-xl font-bold text-white">Déni de Service Applicatif (HTTP Flood - Couche 7)</h2>
             </div>
