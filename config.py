@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 
 # Récupération du chemin absolu du dossier courant pour localiser le fichier de BDD
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 # Chargement des variables du fichier .env
 load_dotenv(os.path.join(basedir, ".env"))
 
@@ -19,15 +20,15 @@ class Config:
     SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "rootview.db")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
-    # activation la route '/scheduler/jobs' pour visualiser les tâches actives (JSON)
+    # activation la route '/scheduler/jobs' pour visualiser les tâches actives
     SCHEDULER_API_ENABLED = True
 
     # CONFIGURATION DES TÂCHES AUTOMATISÉES A EXECUTER
     JOBS = [
         {
-            'id': 'scan_routine',
-            'func': 'app.services.task:scan_global',
-            'trigger': 'interval',
-            'minutes': 5
+            "id": "scan_routine",
+            "func": "app.services.task:scan_global",
+            "trigger": "interval",
+            "minutes": 5,
         }
     ]
