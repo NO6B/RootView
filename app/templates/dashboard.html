@@ -60,7 +60,7 @@
                         {% if alerte.ip_source not in ips_vues.liste %}
                             {% set _ = ips_vues.liste.append(alerte.ip_source) %}
                             
-                            {#Récupération toutes les alertes de d'une ip  #}
+                            {#Récupération toutes les alertes d'une ip  #}
                             {% set alertes_ip = alertes | selectattr('ip_source', 'equalto', alerte.ip_source) | list %}
                             
                             {# Calculer le total des attaques #}

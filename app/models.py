@@ -22,7 +22,7 @@ class Serveur(db.Model):
     adresse_ip = db.Column(db.String(100), nullable=False)
     utilisateur_ssh = db.Column(db.String(100), nullable=False)
     clef_ssh = db.Column(db.Text)
-    endpoint_web = db.Column(db.String(255), nullable=False, default='/login')
+    endpoint_web = db.Column(db.String(255), nullable=False, default="/login")
 
     alertes = db.relationship("Alerte", backref="serveur_cible", lazy=True)
 
@@ -38,6 +38,7 @@ class Alerte(db.Model):
     date_heure = db.Column(db.String(50), nullable=False)
     score_fiabilite = db.Column(db.Integer)
     code_pays = db.Column(db.String(5))
+
 
 class CacheIP(db.Model):
     __tablename__ = "CacheIP"

@@ -1,6 +1,22 @@
 import re
 
+
 def parser_ligne_log(ligne_brute):
+    """
+    Analyse une ligne de log brute pour en extraire les métadonnées structurées.
+
+    Cette fonction utilise des expressions régulières pour identifier deux types
+    de formats : les logs de service SSH (auth.log) et les logs de serveurs
+    web (access.log). Elle capture les champs essentiels comme l'adresse IP,
+    la date et le contenu du message ou de la requête.
+
+    Args:
+        ligne_brute (str): La ligne de texte provenant du fichier de log distant.
+
+    Returns:
+        dict: Un dictionnaire contenant les champs extraits si un format est
+              reconnu, sinon None si la ligne ne correspond à aucun motif.
+    """
     if not ligne_brute or not ligne_brute.strip():
         return None
 
@@ -16,7 +32,9 @@ def parser_ligne_log(ligne_brute):
         }
 
     # WEB
-    regex_web = r"^(\d{1,3}(?:\.\d{1,3}){3})\s-\s-\s\[(.*?)\]\s\"((\S+)\s(.*?)\s.*?)\"\s(\d{3})"
+    regex_web = (
+        r"^(\d{1,3}(?:\.\d{1,3}){3})\s-\s-\s\[(.*?)\]\s\"((\S+)\s(.*?)\s.*?)\"\s(\d{3})"
+    )
     match_web = re.search(regex_web, ligne_brute)
 
     if match_web:
