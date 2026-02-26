@@ -47,13 +47,32 @@ class GestionnaireSSH:
             return f"Erreur: {e}"
             
     def recuperation_log_web(self):
+        """
+        Récupère les logs web en testant les services par ordre de priorité.
+        
+        Tente d'abord de lire les logs Apache. Si le fichier n'existe pas ou 
+        n'est pas accessible, bascule automatiquement sur les logs Nginx.
+        
+        Returns:
+            str: Le contenu des logs du premier service trouvé, ou None si aucun n'est disponible.
+        """
+        commandes = [
+            'sudo tail -n 1000 /var/log/apache2/access.log',
+            'sudo tail -n 1000 /var/log/nginx/access.log'
+        ]
+        
+        for commande in commandes:
             try:
-                # execution de la command
-                stdin, stdout, stderr = self.client.exec_command('sudo tail -n 1000 /var/log/apache2/access.log')
-                # récuperation du résultat binaire, et le traduit en texte
-                return stdout.read().decode('utf-8')
+                stdin, stdout, stderr = self.client.exec_command(commande)
+                exit_code = stdout.channel.recv_exit_status()
+                
+                if exit_code == 0:
+                    return stdout.read().decode('utf-8')
             except Exception as e:
-                return f"Erreur: {e}"
+                print(f"Échec de la commande {commande} : {e}")
+                continue
+
+        return None
 
     def fermer(self):
         self.client.close()
