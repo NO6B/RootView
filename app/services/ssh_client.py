@@ -103,4 +103,3 @@ class GestionnaireSSH:
 
     def fermer(self):
         self.client.close()
-        
