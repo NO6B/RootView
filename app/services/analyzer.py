@@ -15,8 +15,10 @@ class AnalyseurSecurite:
         """
         patterns = [
             "Failed password",
+            "Failed publickey",
             "Connection closed by authenticating user",
             "Connection reset by authenticating user",
+            "Too many authentication failures",
         ]
         return any(motif in contenu_log for motif in patterns)
 
