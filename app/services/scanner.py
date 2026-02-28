@@ -92,7 +92,7 @@ def traiter_logs(serveur_id, logs, protocole, endpoint_web=None):
 
         registre_volume[ip_source] += 1
         # DOS
-        if registre_volume[ip_source] > SEUIL_DOS:
+        if registre_volume[ip_source] >= SEUIL_DOS:
             if not Alerte.query.filter_by(
                 id_serveur=serveur_id, log_brut=ligne
             ).first():
@@ -109,7 +109,7 @@ def traiter_logs(serveur_id, logs, protocole, endpoint_web=None):
             if AnalyseurSecurite.echec_de_mot_de_passe(contenu_log):
                 registre_echecs_ip[ip_source] += 1
 
-            if registre_echecs_ip[ip_source] > SEUIL_BRUTE_FORCE_SSH:
+            if registre_echecs_ip[ip_source] >= SEUIL_BRUTE_FORCE_SSH:
                 if not Alerte.query.filter_by(
                     id_serveur=serveur_id, log_brut=ligne
                 ).first():
@@ -155,7 +155,7 @@ def traiter_logs(serveur_id, logs, protocole, endpoint_web=None):
             ):
                 registre_brute_force_web[ip_source] += 1
 
-                if registre_brute_force_web[ip_source] > SEUIL_BRUTE_FORCE_WEB:
+                if registre_brute_force_web[ip_source] >= SEUIL_BRUTE_FORCE_WEB:
                     if not Alerte.query.filter_by(
                         id_serveur=serveur_id, log_brut=ligne
                     ).first():
