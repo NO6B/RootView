@@ -27,17 +27,18 @@ def validation(nom, mdp):
         return False, "L'identifiant doit contenir au moins 5 caractères."
 
     # Vérification du mot de passe
-    regex_special = r"[!@#$%^&*(),.?\":{}|<>]"
+    regex_special = r"[!@#$%^&*(),.?\":{}|<>+_\-]"
     if (
         not mdp
         or len(mdp) < 8
         or not re.search(r"[A-Z]", mdp)
+        or not re.search(r"[a-z]", mdp)
         or not re.search(r"\d", mdp)
         or not re.search(regex_special, mdp)
     ):
         return (
             False,
-            "Le mot de passe doit contenir au minimum 8 caractères, dont une majuscule, un chiffre et un caractère spécial.",
+            "Le mot de passe doit contenir au minimum 8 caractères, dont une majuscule et une minuscule, un chiffre et un caractère spécial.",
         )
 
     return True, None
