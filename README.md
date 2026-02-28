@@ -82,7 +82,6 @@ ssh-copy-id -i ~/.ssh/rootview_key.pub utilisateur_cible@adresse_ip_du_serveur
 
 ```
 
-*(Alternative manuelle : copiez le contenu de `~/.ssh/rootview_key.pub` et collez-le dans le fichier `~/.ssh/authorized_keys` de l'utilisateur sur le serveur cible).*
 
 ### 3. Récupérer la clé privée pour RootView
 
