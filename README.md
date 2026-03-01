@@ -38,7 +38,8 @@ L'application repose sur une architecture monolithique robuste :
 * **Base de données** : SQLite (gérée via Flask-SQLAlchemy).
 * **Client Réseau** : Paramiko pour la gestion du protocole SSH et l'extraction des logs.
 * **Automatisation** : Flask-APScheduler pour déclencher des analyses globales à intervalles réguliers.
-* **Frontend** : HTML5, Tailwind CSS, et Bootstrap Icons pour une interface moderne et responsive.
+* **Frontend** : HTML5, Tailwind CSS, et Bootstrap Icons pour une interface moderne.
+  
 
 ---
 
