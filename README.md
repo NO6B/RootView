@@ -157,8 +157,6 @@ Pour un environnement de production, utilisez Gunicorn derrière un reverse prox
 ```bash
 gunicorn -w 5 -b 127.0.0.1:5000 run:app
 ```
-L'interface sera accessible à l'adresse : `http://127.0.0.1:5000`
-
 ---
 
 ## Utilisation
