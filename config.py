@@ -21,7 +21,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
     # activation la route '/scheduler/jobs' pour visualiser les tâches actives
-    SCHEDULER_API_ENABLED = True
+    SCHEDULER_API_ENABLED = False
 
     # CONFIGURATION DES TÂCHES AUTOMATISÉES A EXECUTER
     JOBS = [
