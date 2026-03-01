@@ -196,6 +196,15 @@ chmod +x tests/test_intrusions.sh
 4. Retournez sur le tableau de bord RootView et lancez une analyse pour visualiser l'apparition des nouvelles alertes (Brute Force, SQLi, Path Traversal, etc.).
 
 ---
+## Diagramme d'Architecture
+<img width="547" height="557" alt="Capture d’écran 2026-02-27 à 14 16 37" src="https://github.com/user-attachments/assets/5addc63c-c37f-4e83-a68e-29d1e3cef51c" />
+
+
+
+## Schéma de Base de Données (ERD)
+<img width="579" height="615" alt="Capture d’écran 2026-02-27 à 14 04 51" src="https://github.com/user-attachments/assets/3196a556-8a38-4213-a912-d146c12bd720" />
+
+---
 
 *Projet développé dans le cadre d'un portfolio cybersécurité. Usage strictement défensif.*
 
