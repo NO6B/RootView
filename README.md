@@ -1,6 +1,3 @@
----
-
-```markdown
 # RootView - Plateforme de Surveillance de Sécurité Automatisée
 
 RootView est un analyseur de logs serveur via SSH développé pour automatiser et simplifier la détection d'intrusions (Blue Team). Conçu pour lutter contre la "fatigue des logs", il permet de surveiller un parc de serveurs Linux sans nécessiter l'installation d'agents lourds sur les machines cibles.
@@ -19,13 +16,13 @@ RootView est un analyseur de logs serveur via SSH développé pour automatiser e
 
 ## Fonctionnalités Clés
 
-* **Surveillance "Agentless"** : Connexion distante sécurisée via SSH sans installation de logiciel sur le serveur cible.
-* **Moteur de Détection Multi-Vecteurs** :
-  * **Système** : Brute Force SSH, Utilisation d'utilisateurs invalides (Invalid User).
-  * **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (HTTP Flood), Brute Force sur des endpoints spécifiques (ex: `/login`).
-* **Threat Intelligence** : Évaluation dynamique de la réputation des adresses IP attaquantes via l'API **AbuseIPDB**.
-* **Tableau de Bord Interactif** : Visualisation claire des menaces qualifiées, avec accès aux logs bruts (preuves) et mise en évidence des IP listées.
-* **Playbook de Remédiation** : Recommandations techniques intégrées (Fail2ban, configuration SSH, requêtes préparées) pour contrer les vecteurs d'attaque détectés.
+- **Surveillance "Agentless"** : Connexion distante sécurisée via SSH sans installation de logiciel sur le serveur cible.
+- **Moteur de Détection Multi-Vecteurs** :
+  - **Système** : Brute Force SSH, Utilisation d'utilisateurs invalides (Invalid User).
+  - **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (HTTP Flood), Brute Force sur des endpoints spécifiques (ex: `/login`).
+- **Threat Intelligence** : Évaluation dynamique de la réputation des adresses IP attaquantes via l'API **AbuseIPDB**.
+- **Tableau de Bord Interactif** : Visualisation claire des menaces qualifiées, avec accès aux logs bruts (preuves) et mise en évidence des IP listées.
+- **Playbook de Remédiation** : Recommandations techniques intégrées (Fail2ban, configuration SSH, requêtes préparées) pour contrer les vecteurs d'attaque détectés.
 
 ---
 
@@ -33,12 +30,12 @@ RootView est un analyseur de logs serveur via SSH développé pour automatiser e
 
 L'application repose sur une architecture monolithique robuste :
 
-* **Backend** : Python 3 avec le framework Web Flask.
-* **Base de données** : PostgreSQL (gérée via Flask-SQLAlchemy) pour garantir l'intégrité des données et la gestion des accès concurrents en production.
-* **Client Réseau** : Paramiko pour la gestion du protocole SSH et l'extraction des logs.
-* **Automatisation** : Flask-APScheduler pour déclencher des analyses globales à intervalles réguliers.
-* **Frontend** : HTML5, Tailwind CSS, et Bootstrap Icons pour une interface moderne.
-* **Déploiement (Production)** : Gunicorn (Serveur WSGI) et Nginx (Reverse Proxy) sur environnement Linux.
+- **Backend** : Python 3 avec le framework Web Flask.
+- **Base de données** : PostgreSQL (gérée via Flask-SQLAlchemy) pour garantir l'intégrité des données et la gestion des accès concurrents en production.
+- **Client Réseau** : Paramiko pour la gestion du protocole SSH et l'extraction des logs.
+- **Automatisation** : Flask-APScheduler pour déclencher des analyses globales à intervalles réguliers.
+- **Frontend** : HTML5, Tailwind CSS, et Bootstrap Icons pour une interface moderne.
+- **Déploiement (Production)** : Gunicorn (Serveur WSGI) et Nginx (Reverse Proxy) sur environnement Linux.
 
 ---
 
@@ -46,11 +43,11 @@ L'application repose sur une architecture monolithique robuste :
 
 Pour que RootView puisse analyser correctement un serveur cible, ce dernier doit respecter les conditions suivantes :
 
-* **Système d'exploitation** : Distribution Linux (Debian / Ubuntu recommandés).
-* **Service SSH** : Accessible et configuré.
-* **Fichiers de logs requis** :
-  * Pour les attaques système : `/var/log/auth.log`. Le compte utilisé doit avoir les droits de lecture sur ce fichier (idéalement via `sudo` sans mot de passe pour la commande `tail`).
-  * Pour les attaques Web : `/var/log/nginx/access.log` ou `/var/log/apache2/access.log`.
+- **Système d'exploitation** : Distribution Linux (Debian / Ubuntu recommandés).
+- **Service SSH** : Accessible et configuré.
+- **Fichiers de logs requis** :
+  - Pour les attaques système : `/var/log/auth.log`. Le compte utilisé doit avoir les droits de lecture sur ce fichier (idéalement via `sudo` sans mot de passe pour la commande `tail`).
+  - Pour les attaques Web : `/var/log/nginx/access.log` ou `/var/log/apache2/access.log`.
 
 ---
 
@@ -66,10 +63,9 @@ Ouvrez un terminal et exécutez la commande suivante pour créer une clé hautem
 
 ```bash
 ssh-keygen -t ed25519 -f ~/.ssh/rootview_key -C "rootview_monitoring"
-
 ```
 
-*Laissez la "passphrase" (mot de passe) vide pour permettre à l'application de s'y connecter automatiquement.*
+Laissez la "passphrase" (mot de passe) vide pour permettre à l'application de s'y connecter automatiquement.
 
 ### 2. Autoriser la clé sur le serveur cible
 
@@ -77,7 +73,6 @@ Copiez la clé **publique** vers le serveur que vous souhaitez surveiller :
 
 ```bash
 ssh-copy-id -i ~/.ssh/rootview_key.pub utilisateur_cible@adresse_ip_du_serveur
-
 ```
 
 ### 3. Récupérer la clé privée pour RootView
@@ -86,7 +81,6 @@ RootView a besoin de la clé **privée** pour s'authentifier. Affichez-la avec c
 
 ```bash
 cat ~/.ssh/rootview_key
-
 ```
 
 Copiez l'intégralité du texte affiché, incluant les lignes `-----BEGIN OPENSSH PRIVATE KEY-----` et `-----END OPENSSH PRIVATE KEY-----`. C'est cette valeur qu'il faudra coller dans le champ "Clé privée" lors de l'ajout du serveur dans le tableau de bord.
@@ -102,7 +96,6 @@ git clone https://github.com/NO6B/RootView.git
 cd rootview
 ```
 
-
 ### 2. Installer les dépendances système (Linux uniquement)
 
 Si vous déployez sur un environnement Linux (Debian/Ubuntu), le pilote PostgreSQL nécessite des librairies C pour être compilé :
@@ -110,7 +103,6 @@ Si vous déployez sur un environnement Linux (Debian/Ubuntu), le pilote PostgreS
 ```bash
 sudo apt update
 sudo apt install libpq-dev
-
 ```
 
 ### 3. Configurer l'environnement virtuel
@@ -121,7 +113,6 @@ Il est recommandé d'isoler les dépendances Python du projet :
 python3 -m venv .venv
 source .venv/bin/activate  # Sur Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-
 ```
 
 ### 4. Configuration des variables d'environnement
@@ -142,7 +133,6 @@ api_key=votre_cle_api_abuseipdb_ici
 SEUIL_BRUTE_FORCE_SSH=5
 SEUIL_DOS=50
 SEUIL_BRUTE_FORCE_WEB=10
-
 ```
 
 *(Note : Vous pouvez obtenir une clé API gratuite en créant un compte sur [AbuseIPDB](https://www.abuseipdb.com/).)*
@@ -153,17 +143,15 @@ Assurez-vous d'avoir créé votre utilisateur et votre base de données PostgreS
 
 ```bash
 python init_db.py
-
 ```
 
 ### 6. Lancer l'application (Développement local)
 
 ```bash
 python run.py
-
 ```
 
-⚠️ **Note** : La commande `python run.py` utilise le serveur de développement Flask et est réservée au développement local uniquement.
+> **Note** : La commande `python run.py` utilise le serveur de développement Flask et est réservée au développement local uniquement.
 
 ### 7. Déploiement Production (AWS / Serveur Dédié)
 
@@ -171,7 +159,6 @@ Pour un environnement de production stable, utilisez Gunicorn (idéalement derri
 
 ```bash
 gunicorn -w 3 -b unix:rootview.sock -m 007 wsgi:app
-
 ```
 
 ---
@@ -180,13 +167,11 @@ gunicorn -w 3 -b unix:rootview.sock -m 007 wsgi:app
 
 1. **Inscription et Connexion** : Accédez à la plateforme et créez votre premier compte administrateur robuste (minimum 8 caractères, majuscule, chiffre, caractère spécial).
 2. **Ajouter un serveur** : Naviguez dans la section "Serveurs" et cliquez sur "Nouveau serveur". Renseignez :
-* Le nom d'usage (ex: *Serveur Prod*).
-* L'adresse IP.
-* L'utilisateur SSH (ex: *ubuntu* ou *root*).
-* L'endpoint Web à surveiller (ex: `/login` ou `/wp-admin`).
-* La **clé privée** générée lors de la configuration SSH.
-
-
+   - Le nom d'usage (ex: *Serveur Prod*).
+   - L'adresse IP.
+   - L'utilisateur SSH (ex: *ubuntu* ou *root*).
+   - L'endpoint Web à surveiller (ex: `/login` ou `/wp-admin`).
+   - La **clé privée** générée lors de la configuration SSH.
 3. **Surveillance** : Le planificateur tourne en tâche de fond (toutes les 5 minutes). Vous pouvez également déclencher une analyse manuelle en cliquant sur "Lancer l'analyse" depuis le Dashboard.
 
 ---
@@ -199,7 +184,6 @@ Pour vérifier le bon fonctionnement de RootView et faire une démonstration act
 
 ```bash
 chmod +x tests/test_intrusions.sh
-
 ```
 
 2. Éditez le fichier `test_intrusions.sh` pour y insérer l'adresse IP de votre serveur cible (variable `CIBLE`).
@@ -207,7 +191,6 @@ chmod +x tests/test_intrusions.sh
 
 ```bash
 ./tests/test_intrusions.sh
-
 ```
 
 4. Retournez sur le tableau de bord RootView et lancez une analyse pour visualiser l'apparition des nouvelles alertes (Brute Force, SQLi, Path Traversal, etc.).
@@ -215,20 +198,13 @@ chmod +x tests/test_intrusions.sh
 ---
 
 ## Diagramme d'Architecture
-<img width="639" height="634" alt="Capture d’écran 2026-03-02 à 18 51 11" src="https://github.com/user-attachments/assets/2b78639f-bb62-4929-b972-18fa92748577" />
 
-
+<img width="639" height="634" alt="Diagramme d'architecture RootView" src="https://github.com/user-attachments/assets/2b78639f-bb62-4929-b972-18fa92748577" />
 
 ## Schéma de Base de Données (ERD)
-<img width="579" height="615" alt="Capture d’écran 2026-02-27 à 14 04 51" src="https://github.com/user-attachments/assets/de18f162-f122-408e-a0e5-85e74053ec5d" />
 
+<img width="579" height="615" alt="Schéma ERD RootView" src="https://github.com/user-attachments/assets/de18f162-f122-408e-a0e5-85e74053ec5d" />
 
 ---
 
 *Projet développé dans le cadre d'un portfolio cybersécurité. Usage strictement défensif.*
-
-```
-
-***
-
-```
