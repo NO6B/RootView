@@ -98,10 +98,10 @@ Copiez l'intégralité du texte affiché, incluant les lignes `-----BEGIN OPENSS
 ### 1. Cloner le dépôt
 
 ```bash
-git clone [https://github.com/NO6B/RootView.git](https://github.com/NO6B/RootView.git)
+git clone https://github.com/NO6B/RootView.git
 cd rootview
-
 ```
+
 
 ### 2. Installer les dépendances système (Linux uniquement)
 
