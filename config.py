@@ -17,7 +17,7 @@ class Config:
         raise ValueError("ERREUR : La variable 'SECRET_KEY' est manquante.")
 
     # Définitions de l'emplacement où sera stocké le fichier de la base de données.
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(basedir, "rootview.db")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DEBUG = False
     # activation la route '/scheduler/jobs' pour visualiser les tâches actives
