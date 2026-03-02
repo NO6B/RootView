@@ -18,3 +18,5 @@ pytest
 
 # Qualité du code
 flake8
+#
+psycopg2-binary
