@@ -1,5 +1,8 @@
+Voici votre fichier `README.md` complet, corrigé et mis à jour avec votre nouvelle architecture de production (PostgreSQL). Vous pouvez copier directement l'intégralité de ce bloc pour remplacer le contenu de votre fichier actuel.
+
 ---
 
+```markdown
 # RootView - Plateforme de Surveillance de Sécurité Automatisée
 
 RootView est un analyseur de logs serveur via SSH développé pour automatiser et simplifier la détection d'intrusions (Blue Team). Conçu pour lutter contre la "fatigue des logs", il permet de surveiller un parc de serveurs Linux sans nécessiter l'installation d'agents lourds sur les machines cibles.
@@ -20,10 +23,8 @@ RootView est un analyseur de logs serveur via SSH développé pour automatiser e
 
 * **Surveillance "Agentless"** : Connexion distante sécurisée via SSH sans installation de logiciel sur le serveur cible.
 * **Moteur de Détection Multi-Vecteurs** :
-* **Système** : Brute Force SSH, Utilisation d'utilisateurs invalides (Invalid User).
-* **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (HTTP Flood), Brute Force sur des endpoints spécifiques (ex: `/login`).
-
-
+  * **Système** : Brute Force SSH, Utilisation d'utilisateurs invalides (Invalid User).
+  * **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (HTTP Flood), Brute Force sur des endpoints spécifiques (ex: `/login`).
 * **Threat Intelligence** : Évaluation dynamique de la réputation des adresses IP attaquantes via l'API **AbuseIPDB**.
 * **Tableau de Bord Interactif** : Visualisation claire des menaces qualifiées, avec accès aux logs bruts (preuves) et mise en évidence des IP listées.
 * **Playbook de Remédiation** : Recommandations techniques intégrées (Fail2ban, configuration SSH, requêtes préparées) pour contrer les vecteurs d'attaque détectés.
@@ -35,11 +36,11 @@ RootView est un analyseur de logs serveur via SSH développé pour automatiser e
 L'application repose sur une architecture monolithique robuste :
 
 * **Backend** : Python 3 avec le framework Web Flask.
-* **Base de données** : SQLite (gérée via Flask-SQLAlchemy).
+* **Base de données** : PostgreSQL (gérée via Flask-SQLAlchemy) pour garantir l'intégrité des données et la gestion des accès concurrents en production.
 * **Client Réseau** : Paramiko pour la gestion du protocole SSH et l'extraction des logs.
 * **Automatisation** : Flask-APScheduler pour déclencher des analyses globales à intervalles réguliers.
 * **Frontend** : HTML5, Tailwind CSS, et Bootstrap Icons pour une interface moderne.
-  
+* **Déploiement (Production)** : Gunicorn (Serveur WSGI) et Nginx (Reverse Proxy) sur environnement Linux.
 
 ---
 
@@ -50,10 +51,8 @@ Pour que RootView puisse analyser correctement un serveur cible, ce dernier doit
 * **Système d'exploitation** : Distribution Linux (Debian / Ubuntu recommandés).
 * **Service SSH** : Accessible et configuré.
 * **Fichiers de logs requis** :
-* Pour les attaques système : `/var/log/auth.log`. Le compte utilisé doit avoir les droits de lecture sur ce fichier (idéalement via `sudo` sans mot de passe pour la commande `tail`).
-* Pour les attaques Web : `/var/log/nginx/access.log` ou `/var/log/apache2/access.log`.
-
-
+  * Pour les attaques système : `/var/log/auth.log`. Le compte utilisé doit avoir les droits de lecture sur ce fichier (idéalement via `sudo` sans mot de passe pour la commande `tail`).
+  * Pour les attaques Web : `/var/log/nginx/access.log` ou `/var/log/apache2/access.log`.
 
 ---
 
@@ -83,7 +82,6 @@ ssh-copy-id -i ~/.ssh/rootview_key.pub utilisateur_cible@adresse_ip_du_serveur
 
 ```
 
-
 ### 3. Récupérer la clé privée pour RootView
 
 RootView a besoin de la clé **privée** pour s'authentifier. Affichez-la avec cette commande :
@@ -97,19 +95,29 @@ Copiez l'intégralité du texte affiché, incluant les lignes `-----BEGIN OPENSS
 
 ---
 
-## ⚙️ Installation et Déploiement
+## Installation et Déploiement
 
 ### 1. Cloner le dépôt
 
 ```bash
-git clone <URL_DU_DEPOT>
+git clone [<URL_DU_DEPOT>](https://github.com/NO6B/RootView)
 cd rootview
 
 ```
 
-### 2. Configurer l'environnement virtuel
+### 2. Installer les dépendances système (Linux uniquement)
 
-Il est recommandé d'isoler les dépendances du projet :
+Si vous déployez sur un environnement Linux (Debian/Ubuntu), le pilote PostgreSQL nécessite des librairies C pour être compilé :
+
+```bash
+sudo apt update
+sudo apt install libpq-dev
+
+```
+
+### 3. Configurer l'environnement virtuel
+
+Il est recommandé d'isoler les dépendances Python du projet :
 
 ```bash
 python3 -m venv .venv
@@ -118,12 +126,18 @@ pip install -r requirements.txt
 
 ```
 
-### 3. Configuration des variables d'environnement
+### 4. Configuration des variables d'environnement
 
 Créez un fichier `.env` à la racine du projet et ajoutez-y les paramètres suivants :
 
 ```env
+# Sécurité de l'application
 SECRET_KEY=votre_cle_secrete_aleatoire_et_robuste
+
+# Connexion à la base de données PostgreSQL
+SQLALCHEMY_DATABASE_URI=postgresql://user_name:votre_mot_de_passe@localhost/rootview
+
+# Clé API AbuseIPDB (Threat Intelligence)
 api_key=votre_cle_api_abuseipdb_ici
 
 # Seuils de déclenchement des alertes
@@ -133,31 +147,35 @@ SEUIL_BRUTE_FORCE_WEB=10
 
 ```
 
-*(Note : Vous pouvez obtenir une clé API gratuite en créant un compte sur [AbuseIPDB](https://www.google.com/search?q=https://www.abuseipdb.com/).)*
+*(Note : Vous pouvez obtenir une clé API gratuite en créant un compte sur [AbuseIPDB](https://www.abuseipdb.com/).)*
 
-### 4. Initialiser la base de données
+### 5. Initialiser la base de données
 
-Cette commande va créer le fichier `rootview.db` et les tables nécessaires (Utilisateur, Serveur, Alerte, CacheIP) :
+Assurez-vous d'avoir créé votre utilisateur et votre base de données PostgreSQL au préalable sur votre système. Ensuite, exécutez cette commande pour vous y connecter et générer les tables nécessaires (Utilisateur, Serveur, Alerte, CacheIP) :
 
 ```bash
 python init_db.py
 
 ```
 
-### 5. Lancer l'application
+### 6. Lancer l'application (Développement local)
 
 ```bash
 python run.py
 
 ```
-⚠️ Note : La commande `python run.py` est réservée au développement local uniquement.
 
-## 6. Déploiement Production
+⚠️ **Note** : La commande `python run.py` utilise le serveur de développement Flask et est réservée au développement local uniquement.
 
-Pour un environnement de production, utilisez Gunicorn derrière un reverse proxy Nginx :
+### 7. Déploiement Production (AWS / Serveur Dédié)
+
+Pour un environnement de production stable, utilisez Gunicorn (idéalement derrière un reverse proxy Nginx géré par systemd) :
+
 ```bash
-gunicorn -w 5 -b 127.0.0.1:5000 run:app
+gunicorn -w 3 -b unix:rootview.sock -m 007 wsgi:app
+
 ```
+
 ---
 
 ## Utilisation
@@ -197,16 +215,22 @@ chmod +x tests/test_intrusions.sh
 4. Retournez sur le tableau de bord RootView et lancez une analyse pour visualiser l'apparition des nouvelles alertes (Brute Force, SQLi, Path Traversal, etc.).
 
 ---
+
 ## Diagramme d'Architecture
-<img width="547" height="557" alt="Capture d’écran 2026-02-27 à 14 16 37" src="https://github.com/user-attachments/assets/5addc63c-c37f-4e83-a68e-29d1e3cef51c" />
+<img width="639" height="634" alt="Capture d’écran 2026-03-02 à 18 51 11" src="https://github.com/user-attachments/assets/2b78639f-bb62-4929-b972-18fa92748577" />
 
 
 
 ## Schéma de Base de Données (ERD)
-<img width="579" height="615" alt="Capture d’écran 2026-02-27 à 14 04 51" src="https://github.com/user-attachments/assets/3196a556-8a38-4213-a912-d146c12bd720" />
+<img width="579" height="615" alt="Capture d’écran 2026-02-27 à 14 04 51" src="https://github.com/user-attachments/assets/de18f162-f122-408e-a0e5-85e74053ec5d" />
+
 
 ---
 
 *Projet développé dans le cadre d'un portfolio cybersécurité. Usage strictement défensif.*
 
----
+```
+
+***
+
+```
