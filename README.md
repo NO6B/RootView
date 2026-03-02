@@ -1,5 +1,3 @@
-Voici votre fichier `README.md` complet, corrigé et mis à jour avec votre nouvelle architecture de production (PostgreSQL). Vous pouvez copier directement l'intégralité de ce bloc pour remplacer le contenu de votre fichier actuel.
-
 ---
 
 ```markdown
