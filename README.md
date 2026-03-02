@@ -158,7 +158,7 @@ python run.py
 Pour un environnement de production stable, utilisez Gunicorn (idéalement derrière un reverse proxy Nginx géré par systemd) :
 
 ```bash
-gunicorn -w 3 -b unix:rootview.sock -m 007 wsgi:app
+gunicorn -w 5 -b unix:rootview.sock -m 007 "app:creer_application()"
 ```
 
 ---
