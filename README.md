@@ -4,14 +4,24 @@ RootView est un analyseur de logs serveur via SSH développé pour automatiser e
 
 ## Table des matières
 
-1. [Fonctionnalités Clés](#fonctionnalités-clés)
-2. [Architecture et Technologies](#architecture-et-technologies)
-3. [Prérequis et Compatibilité](#prérequis-et-compatibilité)
-4. [Configuration SSH (Ajout de serveur)](#configuration-ssh-ajout-de-serveur)
-5. [Installation et Déploiement](#installation-et-déploiement)
-6. [Utilisation](#utilisation)
-7. [Simulation d'Attaques](#simulation-dattaques)
+1. [Production](#production)
+2. [Fonctionnalités Clés](#fonctionnalités-clés)
+3. [Architecture et Technologies](#architecture-et-technologies)
+4. [Prérequis et Compatibilité](#prérequis-et-compatibilité)
+5. [Configuration SSH (Ajout de serveur)](#configuration-ssh-ajout-de-serveur)
+6. [Installation et Déploiement](#installation-et-déploiement)
+7. [Utilisation](#utilisation)
+8. [Simulation d'Attaques](#simulation-dattaques)
+9. [Tests](#tests)
 
+---
+## Production
+
+RootView est déployé et accessible à l'adresse suivante :
+
+**[https://rootview.tech/login](https://rootview.tech/login)**
+
+> Hébergé sur AWS EC2 (Ubuntu), déployé avec Gunicorn + Nginx.
 ---
 
 ## Fonctionnalités Clés
@@ -38,7 +48,6 @@ L'application repose sur une architecture monolithique robuste :
 - **Déploiement (Production)** : Gunicorn (Serveur WSGI) et Nginx (Reverse Proxy) sur environnement Linux.
 
 ---
-
 ## Prérequis et Compatibilité
 
 Pour que RootView puisse analyser correctement un serveur cible, ce dernier doit respecter les conditions suivantes :
@@ -50,7 +59,6 @@ Pour que RootView puisse analyser correctement un serveur cible, ce dernier doit
   - Pour les attaques Web : `/var/log/nginx/access.log` ou `/var/log/apache2/access.log`.
 
 ---
-
 ## Configuration SSH (Ajout de serveur)
 
 RootView utilise l'authentification par clé publique/privée pour se connecter à vos serveurs de manière sécurisée. La librairie réseau (Paramiko) supporte les clés au format **RSA** ou **Ed25519**.
@@ -196,6 +204,20 @@ chmod +x tests/test_intrusions.sh
 4. Retournez sur le tableau de bord RootView et lancez une analyse pour visualiser l'apparition des nouvelles alertes (Brute Force, SQLi, Path Traversal, etc.).
 
 ---
+## Tests
+
+RootView dispose d'une couverture de tests complète répartie en trois niveaux :
+
+| Fichier | Type | Tests |
+|---|---|---|
+| `tests/test_analyseur.py` | Unitaires + Intégration | 12 |
+| `tests/test_integration_db.py` | Intégration PostgreSQL | 2 |
+| `tests/routes_test.py` | Routes HTTP | 14 |
+
+Pour lancer les tests :
+```bash
+pytest -v
+```
 
 ## Diagramme d'Architecture
 
