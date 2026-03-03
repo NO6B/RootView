@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from sqlalchemy.exc import IntegrityError
 from app import creer_application, db
 from app.models import Utilisateur, Serveur, Alerte
@@ -6,7 +7,10 @@ from app.models import Utilisateur, Serveur, Alerte
 @pytest.fixture(scope='module')
 def app_test():
     """Configure l'application pour pointer sur PostgreSQL."""
-    app = creer_application()
+    # Interception stricte du scheduler pour éviter le SchedulerAlreadyRunningError
+    with patch('app.schedule.init_app'), patch('app.schedule.start'):
+        app = creer_application()
+        
     app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://rootview_user:rootview_pass@localhost/rootview"
     app.config["TESTING"] = True
 
