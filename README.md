@@ -61,7 +61,7 @@ Pour que RootView puisse analyser correctement un serveur cible, ce dernier doit
 ---
 ## Configuration SSH (Ajout de serveur)
 
-RootView utilise l'authentification par clé publique/privée pour se connecter à vos serveurs de manière sécurisée. La librairie réseau (Paramiko) supporte les clés au format **RSA** ou **Ed25519**.
+RootView utilise l'authentification par clé privée pour se connecter à vos serveurs de manière sécurisée. La librairie réseau (Paramiko) supporte les clés au format **RSA** ou **Ed25519**.
 
 Voici la procédure complète pour préparer un serveur cible et récupérer la clé privée nécessaire à l'interface RootView :
 
