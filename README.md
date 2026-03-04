@@ -29,7 +29,7 @@ RootView est déployé et accessible à l'adresse suivante :
 - **Surveillance "Agentless"** : Connexion distante sécurisée via SSH sans installation de logiciel sur le serveur cible.
 - **Moteur de Détection Multi-Vecteurs** :
   - **Système** : Brute Force SSH, Utilisation d'utilisateurs invalides (Invalid User).
-  - **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (HTTP Flood), Brute Force sur des endpoints spécifiques (ex: `/login`).
+  - **Web** : Injections SQL (SQLi), Path Traversal (LFI), Déni de Service (DOS), Brute Force sur des endpoints spécifiques (ex: `/login`).
 - **Threat Intelligence** : Évaluation dynamique de la réputation des adresses IP attaquantes via l'API **AbuseIPDB**.
 - **Tableau de Bord Interactif** : Visualisation claire des menaces qualifiées, avec accès aux logs bruts (preuves) et mise en évidence des IP listées.
 - **Playbook de Remédiation** : Recommandations techniques intégrées (Fail2ban, configuration SSH, requêtes préparées) pour contrer les vecteurs d'attaque détectés.
@@ -40,7 +40,7 @@ RootView est déployé et accessible à l'adresse suivante :
 
 L'application repose sur une architecture monolithique robuste :
 
-- **Backend** : Python 3 avec le framework Web Flask.
+- **Backend** : Python3 avec le framework Web Flask.
 - **Base de données** : PostgreSQL (gérée via Flask-SQLAlchemy) pour garantir l'intégrité des données et la gestion des accès concurrents en production.
 - **Client Réseau** : Paramiko pour la gestion du protocole SSH et l'extraction des logs.
 - **Automatisation** : Flask-APScheduler pour déclencher des analyses globales à intervalles réguliers.
@@ -101,16 +101,15 @@ Copiez l'intégralité du texte affiché, incluant les lignes `-----BEGIN OPENSS
 
 ```bash
 git clone https://github.com/NO6B/RootView.git
-cd rootview
+cd RootView
 ```
 
 ### 2. Installer les dépendances système (Linux uniquement)
 
-Si vous déployez sur un environnement Linux (Debian/Ubuntu), le pilote PostgreSQL nécessite des librairies C pour être compilé :
-
+Si vous déployez sur un environnement Linux (Debian/Ubuntu), installez PostgreSQL et les librairies nécessaires :
 ```bash
 sudo apt update
-sudo apt install libpq-dev
+sudo apt install postgresql postgresql-contrib libpq-dev
 ```
 
 ### 3. Configurer l'environnement virtuel
@@ -119,7 +118,7 @@ Il est recommandé d'isoler les dépendances Python du projet :
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate  # Sur Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
