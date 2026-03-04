@@ -142,8 +142,25 @@ SEUIL_BRUTE_FORCE_SSH=5
 SEUIL_DOS=50
 SEUIL_BRUTE_FORCE_WEB=10
 ```
-
+⚠️ Les variables `SEUIL_BRUTE_FORCE_SSH`, `SEUIL_DOS` et `SEUIL_BRUTE_FORCE_WEB` 
+sont obligatoires — l'application ne démarrera pas sans elles.
+La clé `api_key` AbuseIPDB est optionnelle : sans elle, les alertes 
+sont créées sans score de réputation.
 *(Note : Vous pouvez obtenir une clé API gratuite en créant un compte sur [AbuseIPDB](https://www.abuseipdb.com/).)*
+
+### 4.bis. Créer la base de données PostgreSQL
+```bash
+sudo -u postgres psql
+```
+
+Puis dans le shell PostgreSQL :
+```sql
+CREATE USER rootview_user WITH PASSWORD 'rootview_motdepass';
+CREATE DATABASE rootview OWNER rootview_user;
+\q
+```
+
+Remplacez `rootview_user` et `rootview_motdepass` par les valeurs que vous mettez dans `SQLALCHEMY_DATABASE_URI`.
 
 ### 5. Initialiser la base de données
 
@@ -166,7 +183,7 @@ python run.py
 Pour un environnement de production stable, utilisez Gunicorn (idéalement derrière un reverse proxy Nginx géré par systemd) :
 
 ```bash
-gunicorn -w 5 -b unix:rootview.sock -m 007 "app:creer_application()"
+gunicorn -w 5 -b 127.0.0.1:5000 run:app
 ```
 
 ---
