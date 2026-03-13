@@ -5,7 +5,24 @@ from app import db
 from app.models import Utilisateur, Alerte, Serveur
 from app.services.scanner import scan
 from app.services.validators import validation
+import socket
 
+
+def verifier_statut(ip):
+    """
+    Vérifie si un serveur est joignable via TCP sur le port 22.
+
+    Args:
+        ip (str): L'adresse IP du serveur cible.
+
+    Returns:
+        bool: True si le port répond, False sinon.
+    """
+    try:
+        socket.create_connection((ip, 22), timeout=0.5)
+        return True
+    except Exception:
+        return False
 
 bp = Blueprint("main", __name__)
 
@@ -175,7 +192,7 @@ def gestion_serveurs():
         return redirect(url_for("main.gestion_serveurs"))
 
     liste_serveurs = Serveur.query.filter_by(id_utilisateur=current_user.id).all()
-    return render_template("servers.html", serveurs=liste_serveurs)
+    return render_template("servers.html", serveurs=liste_serveurs, statut_serveur=verifier_statut)
 
 
 @bp.route("/servers/delete/<int:id_serveur>", methods=["POST"])
