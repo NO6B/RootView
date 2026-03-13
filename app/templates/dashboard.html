@@ -40,52 +40,39 @@
         </div>
         
         <div class="bg-panel rounded-xl border border-gray-800 shadow-lg overflow-hidden">
-            <table class="w-full text-left border-collapse">
+            <table class="w-full text-left border-collapse table-fixed">
                 <thead>
                     <tr class="bg-panel text-gray-500 text-sm border-b border-gray-800">
-                        <th class="px-6 py-4 font-medium">Dernière Activité</th>
-                        <th class="px-6 py-4 font-medium">IP Attaquante</th>
-                        <th class="px-6 py-4 font-medium">Serveur ciblé</th>
-                        <th class="px-6 py-4 font-medium text-center">Total Attaques</th>
-                        <th class="px-6 py-4 font-medium">Type</th>
-                        <th class="px-6 py-4 font-medium">Score AbuseIPDB</th>
-                        <th class="px-6 py-4 font-medium">Pays</th>
+                        <th class="px-6 py-4 font-medium" style="width: 130px;">Serveur ciblé</th>
+                        <th class="px-6 py-4 font-medium" style="width: 150px;">IP Attaquante</th>
+                        <th class="px-6 py-4 font-medium" style="width: 180px;">Dernière Activité</th>
+                        <th class="px-6 py-4 font-medium" style="width: 280px;">Type</th>
+                        <th class="px-6 py-4 font-medium text-right" style="width: 100px;">Total Attaques</th>
+                        <th class="px-6 py-4 font-medium text-right" style="width: 140px;">Niveau de Menace</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-800">
                     {% set ips_vues = namespace(liste=[]) %}
                     
                     {% for alerte in alertes %}
-                        {#vérification de l'ip pour n'avoir qu'une ligne par attaquant #}
                         {% if alerte.ip_source not in ips_vues.liste %}
                             {% set _ = ips_vues.liste.append(alerte.ip_source) %}
-                            
-                            {#Récupération toutes les alertes d'une ip  #}
                             {% set alertes_ip = alertes | selectattr('ip_source', 'equalto', alerte.ip_source) | list %}
-                            
-                            {# Calculer le total des attaques #}
                             {% set nombre_attaques = alertes_ip | length %}
-                            
-                            {# Extraire une liste unique de tous les types d'attaques pour cette IP #}
                             {% set types_uniques = alertes_ip | map(attribute='type') | unique | list %}
 
                             <tr class="hover:bg-gray-800 transition">
-                                <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ alerte.date_heure }}</td>
-                                
-                                <td class="px-6 py-4 text-sm text-gray-300 font-mono">
-                                    <a href="{{ url_for('main.details_attaques_ip', ip=alerte.ip_source) }}" class="text-blue-500 hover:text-blue-400 font-medium transition" title="Voir les détails de l'IP">
+                                <td class="px-6 py-4 text-sm text-white font-medium">{{ noms_serveurs.get(alerte.id_serveur, 'Inconnu') }}</td>
+
+                                <td class="px-6 py-4 text-sm text-blue-500 font-mono">
+                                    <a href="{{ url_for('main.details_attaques_ip', ip=alerte.ip_source) }}" class="hover:text-blue-400 transition">
                                         {{ alerte.ip_source }}
                                     </a>
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-400">{{ noms_serveurs.get(alerte.id_serveur, 'Inconnu') }}</td>
-                                
-                                <td class="px-6 py-4 text-sm font-bold text-white text-center">
-                                    {{ nombre_attaques }}
-                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ alerte.date_heure }}</td>
 
                                 <td class="px-6 py-4 text-sm flex flex-wrap gap-2">
-                                    {# généreration d'un badge pour chaque type d'attaque #}
                                     {% for type_attaque in types_uniques %}
                                         {% if type_attaque in ['SQL Injection', 'Path Traversal'] %}
                                             <span class="px-2 py-1 bg-purple-900 bg-opacity-30 text-purple-400 border border-purple-800 rounded text-xs font-medium whitespace-nowrap">
@@ -99,12 +86,12 @@
                                     {% endfor %}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm font-bold {{ 'text-red-400' if alerte.score_fiabilite is not none and alerte.score_fiabilite > 50 else 'text-gray-400' }}">
-                                    {{ 'Danger' if alerte.ip_liste else 'Fiable' }}
+                                <td class="px-6 py-4 text-sm font-bold text-white text-right">
+                                    {{ nombre_attaques }}
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-400">
-                                    {{ alerte.code_pays if alerte.code_pays else 'Inconnu' }}
+                                <td class="px-6 py-4 text-sm font-bold text-right {{ 'text-red-400' if alerte.score_fiabilite and alerte.score_fiabilite > 50 else 'text-gray-400' }}">
+                                    {{ 'Élevé' if alerte.ip_liste else 'Fiable' }}
                                 </td>
                             </tr>
                         {% endif %}
