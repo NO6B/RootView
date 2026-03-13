@@ -1,87 +1,104 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-8">
-    <div>
-        <h1 class="text-3xl font-bold text-white">Parc de Serveurs</h1>
-        <p class="text-gray-400 text-sm">Machines sous surveillance active</p>
-    </div>
-    <button onclick="document.getElementById('modal-serveur').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
-        <i class="bi bi-plus-lg"></i> Nouveau serveur
-    </button>
-</div>
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-white mb-6">Machines Monitorées</h1>
 
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {% for serveur in serveurs %}
-    <div class="bg-panel border border-gray-800 rounded-xl p-6 relative shadow-lg">
-        
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-white">{{ serveur.nom }}</h2>
-            <i class="bi bi-server text-gray-600 text-xl"></i>
-        </div>
+    <!-- Bloc formulaire -->
+    <div class="bg-panel border border-gray-800 rounded-xl p-6 mb-6">
+        <h2 class="text-base font-medium text-white mb-5">Nouveau Serveur</h2>
 
-        <div class="space-y-3 mb-6">
-            <div class="flex justify-between items-center border-b border-gray-800 pb-2">
-                <span class="text-gray-500 text-sm">Adresse IP</span>
-                <span class="text-white font-mono text-sm">{{ serveur.adresse_ip }}</span>
+        <form action="{{ url_for('main.gestion_serveurs') }}" method="POST">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-gray-500 text-xs mb-1">Nom d'usage pour le serveur</label>
+                    <input type="text" name="nom" required placeholder="Prod-Serveur-01"
+                        class="w-full bg-rootdark border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:border-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-xs mb-1">Adresse IP du serveur</label>
+                    <input type="text" name="ip" required placeholder="192.168.x.x"
+                        class="w-full bg-rootdark border border-gray-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-xs mb-1">Nom d'utilisateur SSH </label>
+                    <input type="text" name="user_ssh" required placeholder="ubuntu / root"
+                        class="w-full bg-rootdark border border-gray-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-gray-500 text-xs mb-1">Lien de la page de connexion (ex: /login)</label>
+                    <input type="text" name="endpoint" required placeholder="/login"
+                        class="w-full bg-rootdark border border-gray-700 rounded-lg px-3 py-2 text-sm text-white font-mono focus:border-blue-500 outline-none transition">
+                </div>
             </div>
-            
-            <div class="flex justify-between items-center pb-2">
-                <span class="text-gray-500 text-sm">Utilisateur</span>
-                <span class="text-white font-mono text-sm">{{ serveur.utilisateur_ssh }}</span>
+            <div class="mb-6">
+                <label class="block text-gray-500 text-xs mb-1">Clé privée SSH</label>
+                <textarea name="key_ssh" rows="2"
+                    class="w-full bg-rootdark border border-gray-700 rounded-lg px-3 py-2 text-white font-mono text-xs focus:border-blue-500 outline-none transition"></textarea>
             </div>
-        </div>
 
-        <div class="flex justify-end mt-2">
-            <form action="{{ url_for('main.supprimer_serveur', id_serveur=serveur.id) }}" method="POST">
-                <button type="submit" class="p-2 bg-red-900 bg-opacity-20 text-red-500 rounded border border-red-900 border-opacity-30 hover:bg-red-900 hover:bg-opacity-40 transition" onclick="return confirm('Supprimer ce serveur ?')">
-                    <i class="bi bi-trash3"></i>
+            <div class="flex flex-col gap-3">
+                <button type="submit"
+                    style="background-color: #22c55e; border-radius: 10px; padding: 10px 28px; font-size: 15px; font-weight: 600; color: white; width: fit-content;">
+                    Ajouter
                 </button>
-            </form>
-        </div>
-    </div>
-    {% else %}
-    <div class="col-span-full text-center py-16 bg-panel border border-dashed border-gray-700 rounded-xl">
-        <p class="text-gray-500 mb-4">Aucune machine monitorée pour le moment.</p>
-    </div>
-    {% endfor %}
-</div>
-
-{# Modal Ajout Serveur #}
-<div id="modal-serveur" class="hidden fixed inset-0 bg-black bg-opacity-80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="bg-panel border border-gray-700 p-6 rounded-xl max-w-md w-full shadow-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-xl font-bold text-white">Nouveau Serveur</h3>
-            <button onclick="document.getElementById('modal-serveur').classList.add('hidden')" class="text-gray-500 hover:text-white text-xl">✕</button>
-        </div>
-        
-
-        <form action="{{ url_for('main.gestion_serveurs') }}" method="POST" class="space-y-4">
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">Nom d'usage</label>
-                <input type="text" name="nom" required placeholder="ex: Serveur Web" class="w-full bg-rootdark border border-gray-700 rounded p-2 text-white focus:border-blue-500 outline-none transition">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">Adresse IP</label>
-                <input type="text" name="ip" required placeholder="192.168.x.x" class="w-full bg-rootdark border border-gray-700 rounded p-2 text-white font-mono focus:border-blue-500 outline-none transition">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">User SSH</label>
-                <input type="text" name="user_ssh" required placeholder="ubuntu / root" class="w-full bg-rootdark border border-gray-700 rounded p-2 text-white font-mono focus:border-blue-500 outline-none transition">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">Endpoint a surveiller</label>
-                <input type="text" name="endpoint" required placeholder="/login" class="w-full bg-rootdark border border-gray-700 rounded p-2 text-white font-mono focus:border-blue-500 outline-none transition">
-            </div>
-            <div>
-                <label class="block text-gray-400 text-sm mb-1">Clé privée</label>
-                <textarea name="key_ssh" rows="3" class="w-full bg-rootdark border border-gray-700 rounded p-2 text-white font-mono text-xs focus:border-blue-500 outline-none transition"></textarea>
-            </div>
-            <div class="pt-4 flex space-x-3">
-                <button type="button" onclick="document.getElementById('modal-serveur').classList.add('hidden')" class="flex-1 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition">Annuler</button>
-                <button type="submit" class="flex-1 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition">Enregistrer</button>
             </div>
         </form>
+    </div>
+
+    <!-- Bloc liste serveurs -->
+    <div class="bg-panel border border-gray-800 rounded-xl p-6">
+        <h2 class="text-base font-medium text-white mb-4">Serveurs Connectés</h2>
+
+        <div class="space-y-4">
+            {% for serveur in serveurs %}
+            <div class="bg-rootdark border border-gray-800 rounded-xl"
+                 style="display: flex; align-items: center; padding: 14px 20px; gap: 0;">
+
+                <!-- Icône avec marge gauche -->
+                <div class="bg-gray-800 rounded-lg flex-shrink-0"
+                     style="padding: 10px; margin-left: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-server text-gray-400" style="font-size: 18px;"></i>
+                </div>
+
+                <!-- Infos -->
+                <div style="flex: 1; margin-left: 16px; min-width: 0;">
+                    <p style="color: white; font-size: 14px; font-weight: 600; margin: 0;">{{ serveur.nom }}</p>
+                    <p style="color: #6b7280; font-size: 12px; font-family: monospace; margin: 2px 0 0 0;">{{ serveur.adresse_ip }}</p>
+                    <p style="color: #6b7280; font-size: 12px; margin: 1px 0 0 0;">User: {{ serveur.utilisateur_ssh }}</p>
+                    <p style="color: #6b7280; font-size: 12px; font-family: monospace; margin: 1px 0 0 0;">
+                        Endpoint: <span style="color: #94a3b8;">{{ serveur.endpoint_web }}</span>
+                    </p>
+                </div>
+
+                <!-- Statut -->
+                <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-right: 24px;">
+                    {% if statut_serveur(serveur.adresse_ip) %}
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #22c55e; display: inline-block;"></span>
+                        <span style="color: #22c55e; font-size: 13px; font-weight: 500;">Actif</span>
+                    {% else %}
+                        <span style="width: 10px; height: 10px; border-radius: 50%; background-color: #ef4444; display: inline-block;"></span>
+                        <span style="color: #f87171; font-size: 13px; font-weight: 500;">Inactif</span>
+                    {% endif %}
+                </div>
+
+                <!-- Supprimer -->
+                <form action="{{ url_for('main.supprimer_serveur', id_serveur=serveur.id) }}" method="POST" style="flex-shrink: 0;">
+                    <button type="submit"
+                        style="background: none; border: none; color: #4b5563; cursor: pointer; padding: 6px; font-size: 16px;"
+                        onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='#4b5563'"
+                        onclick="return confirm('Supprimer ce serveur ?')">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </form>
+            </div>
+            {% else %}
+            <div class="text-center py-10 border border-dashed border-gray-700 rounded-xl">
+                <i class="bi bi-hdd-network text-gray-600 text-3xl block mb-2"></i>
+                <p class="text-gray-500 text-sm">Aucune machine monitorée pour le moment.</p>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 {% endblock %}
