@@ -279,3 +279,43 @@ def recommandations():
         render_template: Page HTML détaillant les procédures de défense pour chaque vecteur d'attaque.
     """
     return render_template("recommendations.html")
+
+
+@bp.route('/serveurs/modifier/<int:id_serveur>', methods=['GET', 'POST'])
+@login_required
+def modifier_serveur(id_serveur):
+    """
+    Permet la modification des paramètres d'un serveur existant.
+
+    Vérifie les droits de propriété avant toute modification. La clé privée SSH
+    n'est mise à jour que si un nouvelle valeur est explicitement fournie.
+
+    Args:
+        id_serveur (int): L'identifiant du serveur à modifier.
+
+    Returns:
+        Response: Formulaire pré-rempli en GET, redirection vers la liste des serveurs en POST.
+    """
+    serveur = Serveur.query.get_or_404(id_serveur)
+
+    if serveur.id_utilisateur != current_user.id:
+        return redirect(url_for("main.gestion_serveurs"))
+
+    if request.method == 'POST':
+        serveur.nom = request.form.get('nom')
+        serveur.adresse_ip = request.form.get('ip')
+        serveur.utilisateur_ssh = request.form.get('user_ssh')
+        serveur.endpoint_web = request.form.get('endpoint')
+        
+        nouvelle_cle = request.form.get('key_ssh')
+        if nouvelle_cle and nouvelle_cle.strip():
+            serveur.clef_ssh = nouvelle_cle.strip()
+
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        
+        return redirect(url_for('main.gestion_serveurs'))
+
+    return render_template('modifier_serveur.html', serveur=serveur)

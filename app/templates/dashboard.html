@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% set dernier_moment = alertes[0].date_heure if alertes else "Aucune activité" %}
+{% set dernier_moment = alertes[0].date_heure[8:10] ~ '/' ~ alertes[0].date_heure[5:7] ~ '/' ~ alertes[0].date_heure[0:4] ~ ' à ' ~ alertes[0].date_heure[11:16] if alertes else "Aucune activité" %}
 
 <div class="max-w-7xl mx-auto">
     
@@ -70,7 +70,7 @@
                                     </a>
                                 </td>
 
-                                <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ alerte.date_heure }}</td>
+                                <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ alerte.date_heure[8:10] }}/{{ alerte.date_heure[5:7] }}/{{ alerte.date_heure[0:4] }} {{ alerte.date_heure[11:16] }}</td>
 
                                 <td class="px-6 py-4 text-sm flex flex-wrap gap-2">
                                     {% for type_attaque in types_uniques %}
