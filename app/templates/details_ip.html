@@ -47,7 +47,7 @@
             <tbody class="divide-y divide-gray-800">
                 {% for alerte in alertes %}
                 <tr class="hover:bg-gray-800 transition">
-                    <td class="px-6 py-4 text-sm text-gray-300 font-mono">{{ alerte.date_heure[8:10] }}/{{ alerte.date_heure[5:7] }}/{{ alerte.date_heure[0:4] }} {{ alerte.date_heure[11:16] }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-300 font-mono">{{ alerte.date_heure }}</td>
                     
                     <td class="px-6 py-4 text-sm">
                         <span class="px-2 py-1 bg-purple-900 bg-opacity-30 text-purple-400 border border-purple-800 rounded text-xs font-medium">
