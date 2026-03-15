@@ -1,7 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-{% set dernier_moment = alertes[0].date_heure[8:10] ~ '/' ~ alertes[0].date_heure[5:7] ~ '/' ~ alertes[0].date_heure[0:4] ~ ' à ' ~ alertes[0].date_heure[11:16] if alertes else "Aucune activité" %}
+{% if alertes %}
+    {% set d = alertes[0].date_heure %}
+    {% if '/' in d %}
+    {% set dernier_moment = d[0:2] ~ '/' ~ d[3:6] ~ '/' ~ d[7:11] ~ ' à ' ~ d[12:17] %}
+{% else %}
+    {% set dernier_moment = d[8:10] ~ '/' ~ d[5:7] ~ '/' ~ d[0:4] ~ ' à ' ~ d[11:16] %}
+{% endif %}
+{% else %}
+    {% set dernier_moment = "Aucune activité" %}
+{% endif %}
+
 <div class="max-w-7xl mx-auto">
     
     <div class="flex justify-between items-center mb-8">
